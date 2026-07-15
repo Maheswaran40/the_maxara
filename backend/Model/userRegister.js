@@ -14,8 +14,9 @@ const dataSchema = mongoose.Schema({
      isVerified: {
         type: Boolean,
         default: false
-    }
-})
+    },
+    
+},{ timestamps: true })
 
 const DataModal = mongoose.model("userdata", dataSchema)
 module.exports = DataModal

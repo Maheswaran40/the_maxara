@@ -1,4 +1,4 @@
-const DataModal = require("../Model/userLogin");
+const DataModal = require("../Model/userRegister");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer")

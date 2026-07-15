@@ -1,0 +1,14 @@
+# Ignore a single specific file
+secrets.json
+
+# Ignore a specific folder and all its contents
+node_modules/
+/logs/
+
+# Ignore all files ending with a specific extension
+*.log
+*.tmp
+
+# Ignore all .env files, but keep one specific production template
+.env*
+!.env.production
