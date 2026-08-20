@@ -24,7 +24,7 @@ const categories = [
 
 function CategoryMenu() {
   return (
-    <div className="w-[100%] bg-white p-4">
+    <div className="w-[100%] bg-white p-4 ">
 
       <ul className="space-y-3">
         {categories.map((item, index) => (

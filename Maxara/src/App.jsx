@@ -1,16 +1,37 @@
-import React from 'react'
-import Navbar from "./common_comp/Navbar"
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import Navbar from "./common_comp/Navbar";
+import Home from "./pages/Home";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
+import Products from "./pages/Products";
+import CategoryProduct from "./pages/CategoryProduct";
+import ProductPage from "./pages/ProductPage";
+
 function App() {
   return (
-    <>
-        <Navbar/>
-     <div className="flex items-center justify-center h-screen">
-      <h1 className="text-4xl font-bold text-blue-600">
-        Tailwind CSS is working!
-      </h1>
-    </div>
-    </>
-  )
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
 }
 
-export default App
+function AppContent() {
+  const location = useLocation();
+  const hideLayout = location.pathname === "/form" || location.pathname === "/signup";
+
+  return (
+    <>
+      {!hideLayout && <Navbar />}
+      <Routes>
+        <Route path="/" element={<Home />} /> {/* Home renders Products component */}
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/form" element={<Login />} />
+        <Route path="/product/:productId" element={<ProductPage />} />
+        <Route path="/category/:folder" element={<CategoryProduct />} /> {/* Category page */}
+        <Route path="/:folder" element={<Products />} /> {/* Dynamic folder route */}
+      </Routes>
+    </>
+  );
+}
+
+export default App;
