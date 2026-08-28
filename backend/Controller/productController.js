@@ -76,6 +76,36 @@ const getData = async (req, res) => {
   }
 };
 
+// get banner image
+
+const getBanner = async (req, res) => {
+
+  try {
+    let dataBanner = await productSchema.find({ category: "homehero1" })
+    let roundBatch = await productSchema.find({ category: "homecard1" })
+    let brandlogo = await productSchema.find({ folder: "brandlogo" })
+    let budgetCard = await productSchema.find({ category: "budget sport shopping", folder: "homepage" })
+    let dataBanner2 = await productSchema.find({ category: "homehero2", folder: "homepage" })
+    let steelDeal = await productSchema.find({ category: "steal_deal_card" })
+    let newarrival = await productSchema.find({
+      category: "newarrival"
+    });
+
+    let hoverimage = await productSchema.find({ category: "hover" })
+    res.status(200).json({ dataBanner, roundBatch, newarrival, 
+      hoverimage, brandlogo, budgetCard, dataBanner2, steelDeal })
+    console.log("data", data);
+
+  }
+
+  catch (err) {
+    res.status(404).send(`Error name: ${err.name}, message: ${err.message}`);
+    console.log("getBanner", err)
+  }
+
+}
+
+
 // Update product by ID
 const updateData = async (req, res) => {
   try {
@@ -105,5 +135,6 @@ module.exports = {
   getData,
   updateData,
   deleteData,
-  
+  getBanner
+
 };

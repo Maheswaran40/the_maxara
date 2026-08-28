@@ -5,12 +5,14 @@ const {
   getData,
   updateData,
   deleteData,
+  getBanner
  
 } = require("../Controller/productController");
 
 // REST API endpoints
 productRouter.post("/addProduct", addData);
 productRouter.get("/getProduct", getData);
+productRouter.get("/getBanner", getBanner);
 productRouter.put("/updateProduct/:id", updateData);
 productRouter.delete("/deleteProduct/:id", deleteData);
 

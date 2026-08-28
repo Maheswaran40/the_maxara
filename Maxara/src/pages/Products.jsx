@@ -19,10 +19,10 @@ function Products() {
   const product_section_card = [
     { img: bags, name: "Bags & Backpacks", id: "bags" },
     { img: cycle, name: "Cycling & Skating", id: "cycle" },
-    { img: hiking, name: "Hiking & Trekking", id: "hiking" },
-    { img: rain_essential, name: "Rain Essential", id: "rain" },
+    { img: hiking, name: "Hiking & Trekking", id: "pants" },
+    { img: rain_essential, name: "Rain Essential", id: "shirts" },
     { img: shoes, name: "Shoes", id: "shoes" },
-    { img: Sports, name: "Sports & Accessories", id: "sports" }
+    { img: Sports, name: "Sports & Accessories", id: "outdoor" }
   ];
 
   // ✅ Navigate to category page when category card is clicked
@@ -32,13 +32,13 @@ function Products() {
 
   return (
     <div>
-      <div className="md:grid-cols-6 gap-6 py-4 mb-4">
+      <div className="md:grid-cols-6 gap-6 pt-4  mb-0">
         <Swiper
           id="brandswpier"
           spaceBetween={10}
           modules={[Navigation, Autoplay, Pagination]}
           autoplay={{ delay: 2000 }}
-          pagination={{ clickable: true }}
+          // pagination={{ clickable: true }}
           breakpoints={{
             320: { slidesPerView: 3 },
             768: { slidesPerView: 4 },

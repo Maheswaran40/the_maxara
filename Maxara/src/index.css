@@ -476,3 +476,29 @@
 
 
 /* signup page start */
+
+
+
+
+/* SWIPER SMOOTY */
+.brand-swiper .swiper-wrapper {
+  transition-timing-function: linear !important;
+}
+/* 
+  #brandlogo {
+    width: 70px;
+    height: 50px;
+  } */
+
+  #brandlogo {
+  height: 70px;
+  width: 100px;
+}
+
+#shoes-banner img {
+  width: 100%; /* scale horizontally */
+  height: 350px; /* keep aspect ratio */
+  object-fit: cover; /*show full image, no crop */
+  border-radius: 60px;
+  margin-bottom: 10px;
+}

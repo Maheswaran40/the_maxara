@@ -559,8 +559,8 @@ const ProductCard = ({ product, products, onProductClick }) => {
 
         {/* Discount Badge */}
         {product.offer && (
-          <div className="absolute top-3 left-3 z-30 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-            {product.offer}% OFF
+          <div className="absolute top-3 left-3 z-30 bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-bold px-2 py-1.5 rounded-full shadow-lg">
+            {product.offer} OFF
           </div>
         )}
 
@@ -601,25 +601,24 @@ const ProductCard = ({ product, products, onProductClick }) => {
 
           {product.offer && (
             <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-              {product.offer}% OFF
+              {product.offer} OFF
             </span>
           )}
         </div>
-
-        <div className="flex items-center gap-1 mb-3 mt-2">
+        {/* <div className="flex items-center gap-1 mb-3 mt-2">
           <div className="flex text-yellow-400">
             {"⭐".repeat(4)}
             <span className="text-gray-300">⭐</span>
           </div>
           <span className="text-xs text-gray-500">(24)</span>
-        </div>
+        </div> */}
 
         <button
           onClick={(e) => {
             e.stopPropagation();
             // Add to cart
           }}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-blue-600 mt-2 to-indigo-600 text-white py-2.5 rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-2"
         >
           <ShoppingBag className="w-4 h-4" />
           Add to Cart
