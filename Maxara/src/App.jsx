@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Products from "./pages/Products";
 import CategoryProduct from "./pages/CategoryProduct";
 import ProductPage from "./pages/ProductPage";
+import Footer from "./common_comp/Footer";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function AppContent() {
         <Route path="/category/:folder" element={<CategoryProduct />} /> {/* Category page */}
         <Route path="/:folder" element={<Products />} /> {/* Dynamic folder route */}
       </Routes>
+      {!hideLayout && <Footer />}
     </>
   );
 }

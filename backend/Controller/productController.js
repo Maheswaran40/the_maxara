@@ -87,13 +87,15 @@ const getBanner = async (req, res) => {
     let budgetCard = await productSchema.find({ category: "budget sport shopping", folder: "homepage" })
     let dataBanner2 = await productSchema.find({ category: "homehero2", folder: "homepage" })
     let steelDeal = await productSchema.find({ category: "steal_deal_card" })
+    let bag_banner = await productSchema.find({ category: "bag_banner" })
+    let bag_card = await productSchema.find({ category: "bag_card" })
     let newarrival = await productSchema.find({
       category: "newarrival"
     });
 
     let hoverimage = await productSchema.find({ category: "hover" })
     res.status(200).json({ dataBanner, roundBatch, newarrival, 
-      hoverimage, brandlogo, budgetCard, dataBanner2, steelDeal })
+      hoverimage, brandlogo, budgetCard, dataBanner2, steelDeal ,bag_banner,bag_card})
     console.log("data", data);
 
   }

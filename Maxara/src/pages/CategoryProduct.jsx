@@ -12,6 +12,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/scrollbar";
+
 function CategoryProduct() {
   const { folder } = useParams();
   const navigate = useNavigate();
@@ -22,6 +29,8 @@ function CategoryProduct() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [rangevalue, setRangevalue] = useState(3000);
 
+  const [bag_banner, setBagBanner] = useState([]);
+  const [bag_card, setBagCard] = useState([]);
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -45,6 +54,13 @@ function CategoryProduct() {
           maxPrice: rangevalue,
         },
       });
+
+      const banner_responce = await axios.get(
+        import.meta.env.VITE_API_GETBANNER,
+      );
+      console.log("banner_responce", banner_responce);
+      setBagBanner(banner_responce.data.bag_banner);
+      setBagCard(banner_responce.data.bag_card);
 
       console.log("API Response:", response.data); // Debug log
 
@@ -180,6 +196,65 @@ function CategoryProduct() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {folder == "travelbag" ? (
+        <Swiper
+          spaceBetween={10}
+          modules={[Navigation, Autoplay, Pagination]}
+          autoplay={{ delay: 3000 }}
+          pagination={{ clickable: true }}
+          scrollbar={{ draggable: true }}
+          breakpoints={{
+            320: { slidesPerView: 3 },
+            768: { slidesPerView: 4 },
+            1024: { slidesPerView: 6 },
+          }}
+          loop
+        >
+          {bag_card.map((value, index) => {
+            return (
+              <SwiperSlide>
+                <div id="home-swiper" className="px-2" key={index}>
+                  <center className="mb-3.5">
+                    <img src={value.url} alt="image" /> <br />
+                  </center>
+                </div>
+              </SwiperSlide>
+            );
+          })}
+        </Swiper>
+      ) : (
+        ""
+      )}
+
+      {folder == "travelbag" ? (
+        <Swiper
+          spaceBetween={10}
+          modules={[Navigation, Autoplay, Pagination]}
+          autoplay={{ delay: 3000 }}
+          pagination={{ clickable: true }}
+          scrollbar={{ draggable: true }}
+          breakpoints={{
+            320: { slidesPerView: 3 },
+            768: { slidesPerView: 4 },
+            1024: { slidesPerView: 1 },
+          }}
+          loop
+        >
+          {bag_banner.map((value, index) => {
+            return (
+              <SwiperSlide>
+                <div id="home-swiper" className="px-2" key={index}>
+                  <center>
+                    <img src={value.url} alt="image" /> <br />
+                  </center>
+                </div>
+              </SwiperSlide>
+            );
+          })}
+        </Swiper>
+      ) : (
+        ""
+      )}
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <h1 className="text-4xl md:text-5xl font-bold text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2 tracking-tight">
@@ -319,7 +394,7 @@ function CategoryProduct() {
                 {/* ✅ PAGINATION - Always show if totalPages > 1 */}
                 {totalPages > 1 && (
                   <div className="mt-10 flex justify-center">
-                    <Pagination
+                    <PaginationData
                       currentPage={currentPage}
                       totalPages={totalPages}
                       onPageChange={handlePageChange}
@@ -360,7 +435,7 @@ function CategoryProduct() {
 }
 
 // ✅ PAGINATION COMPONENT - Enhanced and Visible
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+const PaginationData = ({ currentPage, totalPages, onPageChange }) => {
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pageNumbers = [];
@@ -469,35 +544,63 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
 // Filter Section Component
 const FilterSection = ({ title, items, isColor = false }) => {
+  const [isOpen, setIsOpen] = useState(true);
+
   return (
     <div className="mb-6 pb-6 border-b border-gray-200 last:border-0 last:mb-0 last:pb-0">
-      <h4 className="font-semibold text-gray-700 mb-3">{title}</h4>
-      <div className="space-y-2 max-h-48 overflow-y-auto">
-        {items.map((item, index) => (
-          <label
-            key={index}
-            className="flex items-center gap-3 group cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-all duration-200"
-          >
-            <input
-              type="checkbox"
-              className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
-            />
-            {isColor && item.color && (
-              <span
-                className="w-5 h-5 rounded-full border-2 border-gray-200 flex-shrink-0"
-                style={{
-                  backgroundColor: item.color,
-                  borderColor: item.border ? "#E5E7EB" : item.color,
-                }}
+      
+      {/* Accordion Header */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between mb-3"
+      >
+        <h4 className="font-semibold text-gray-700">
+          {title}
+        </h4>
+
+        <ChevronDown
+          className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {/* Accordion Content */}
+      {isOpen && (
+        <div className="space-y-2">
+          {items.map((item, index) => (
+            <label
+              key={index}
+              className="flex items-center gap-3 group cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-all duration-200"
+            >
+              <input
+                type="checkbox"
+                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
               />
-            )}
-            <span className="text-sm text-gray-600 group-hover:text-gray-800">
-              {item.label}
-              <span className="text-gray-400 ml-1">({item.count})</span>
-            </span>
-          </label>
-        ))}
-      </div>
+
+              {isColor && item.color && (
+                <span
+                  className="w-5 h-5 rounded-full border-2 border-gray-200 flex-shrink-0"
+                  style={{
+                    backgroundColor: item.color,
+                    borderColor: item.border
+                      ? "#E5E7EB"
+                      : item.color,
+                  }}
+                />
+              )}
+
+              <span className="text-sm text-gray-600 group-hover:text-gray-800">
+                {item.label}
+                <span className="text-gray-400 ml-1">
+                  ({item.count})
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

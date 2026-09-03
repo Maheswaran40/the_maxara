@@ -17,12 +17,12 @@ function Products() {
   const navigate = useNavigate();
 
   const product_section_card = [
-    { img: bags, name: "Bags & Backpacks", id: "bags" },
+    { img: bags, name: "Bags & Backpacks", id: "travelbag" },
     { img: cycle, name: "Cycling & Skating", id: "cycle" },
     { img: hiking, name: "Hiking & Trekking", id: "pants" },
     { img: rain_essential, name: "Rain Essential", id: "shirts" },
     { img: shoes, name: "Shoes", id: "shoes" },
-    { img: Sports, name: "Sports & Accessories", id: "outdoor" }
+    { img: Sports, name: "Sports & Accessories", id: "playkit" }
   ];
 
   // ✅ Navigate to category page when category card is clicked
