@@ -16,7 +16,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
+import AsyncSelect from 'react-select/async';
+import { Navigate, useNavigate } from "react-router-dom";
 function Navbar() {
+  let navigate = useNavigate()
   const SHEET_SIDES = ["left"];
   return (
     <>
@@ -80,12 +83,12 @@ function Navbar() {
               <span className="text-sm">Logout</span>
             </div>
 
-            <div className="flex flex-col items-center cursor-pointer">
+            <div className="flex flex-col items-center cursor-pointer" onClick={()=>navigate("/like")}>
               <FaRegHeart className="text-xl" />
               <span className="text-sm">Wishlist</span>
             </div>
 
-            <div className="flex flex-col items-center cursor-pointer">
+            <div className="flex flex-col items-center cursor-pointer" onClick={()=>navigate("/cart")}>
               <MdOutlineShoppingCart className="text-xl" />
               <span className="text-sm">Cart</span>
             </div>

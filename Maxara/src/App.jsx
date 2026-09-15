@@ -7,6 +7,9 @@ import Products from "./pages/Products";
 import CategoryProduct from "./pages/CategoryProduct";
 import ProductPage from "./pages/ProductPage";
 import Footer from "./common_comp/Footer";
+import OTP from "./pages/OTP";
+import Cart from "./pages/Cart";
+import Wishlist from "./pages/Wishlist";
 
 function App() {
   return (
@@ -18,7 +21,7 @@ function App() {
 
 function AppContent() {
   const location = useLocation();
-  const hideLayout = location.pathname === "/form" || location.pathname === "/signup";
+  const hideLayout = location.pathname === "/login" || location.pathname === "/signup" || location.pathname === "/otp";
 
   return (
     <>
@@ -26,10 +29,14 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home />} /> {/* Home renders Products component */}
         <Route path="/signup" element={<Signup />} />
-        <Route path="/form" element={<Login />} />
+        <Route path="/otp" element={<OTP />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/product/:productId" element={<ProductPage />} />
         <Route path="/category/:folder" element={<CategoryProduct />} /> {/* Category page */}
         <Route path="/:folder" element={<Products />} /> {/* Dynamic folder route */}
+        <Route path="/cart" element={<Cart />} /> 
+        <Route path="/like" element={<Wishlist />} /> 
+
       </Routes>
       {!hideLayout && <Footer />}
     </>

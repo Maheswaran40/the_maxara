@@ -16,7 +16,7 @@ const cors = require("cors");
 
 server.use(
     cors({
-        origin: "http://localhost:5174",
+        origin: "http://localhost:5173",
         credentials: true
     })
 );
@@ -25,11 +25,17 @@ server.use(express.json());
 const userRouter = require("./routes/router");
 server.use("/api",userRouter);
 
+
 const productRouter=require("./routes/ProductRoutes");
 server.use("/api",productRouter)
 
+
 const cartRouter = require("./routes/cartRoutes");
 server.use("/cart",cartRouter)
+
+
+const wishlistRouter = require("./routes/wishRoute");
+server.use("/wishList",wishlistRouter)
 
 server.listen(process.env.PORT, () =>
   console.log("Server running on", process.env.PORT)

@@ -104,30 +104,52 @@ const loginUser = async (req, res) => {
     try {
         const { userEmail, userPassword } = req.body;
 
+        // 1. Find user
         const user = await DataModal.findOne({ userEmail });
+
         if (!user) {
-            return res.status(400).json({ error: "User not found" });
+            return res.status(400).json({
+                error: "User not found"
+            });
         }
 
-        const isMatch = await bcrypt.compare(userPassword, user.userPassword);
-        if (!isMatch) {
-            return res.status(400).json({ error: "Invalid password" });
+        // 2. Check email verification
+        if (!user.isVerified) {
+            return res.status(403).json({
+                error: "Please verify your email before login"
+            });
         }
+
+        // 3. Check password
+        const isMatch = await bcrypt.compare(
+            userPassword,
+            user.userPassword
+        );
+
+        if (!isMatch) {
+            return res.status(400).json({
+                error: "Invalid password"
+            });
+        }
+
+        // 4. Create JWT
         const token = jwt.sign(
             { id: user._id },
-            process.env.JWT_SECRET,   //  Use  in production
-            { expiresIn: "1h" }
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
         );
-        console.log("JWT", token)
-        //  Send token in httpOnly cookie
-        // res.cookie(name, value, options)
 
+        console.log("JWT", token);
+
+        // 5. Store JWT in httpOnly cookie
         res.cookie("token", token, {
             httpOnly: true,
-            secure: false,      // true in production (https)
-            sameSite: "lax", //This prevents CSRF attacks (Cross Site Request Forgery).
-            maxAge: 60 * 60 * 1000 // 1 hour
+            secure: false, // true in production with HTTPS
+            sameSite: "lax",
+            maxAge: 30 * 24 * 60 * 60 * 1000
         });
+
+        // 6. Send response
         res.status(200).json({
             message: "Login successful",
             user: {
@@ -137,11 +159,14 @@ const loginUser = async (req, res) => {
             }
         });
 
-        console.log("login success fully")
+        console.log("Login successfully");
 
     } catch (err) {
         console.log("LOGIN Error:", err.message);
-        res.status(500).json({ error: "Server error" });
+
+        res.status(500).json({
+            error: "Server error"
+        });
     }
 };
 

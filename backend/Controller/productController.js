@@ -96,7 +96,6 @@ const getBanner = async (req, res) => {
     let hoverimage = await productSchema.find({ category: "hover" })
     res.status(200).json({ dataBanner, roundBatch, newarrival, 
       hoverimage, brandlogo, budgetCard, dataBanner2, steelDeal ,bag_banner,bag_card})
-    console.log("data", data);
 
   }
 

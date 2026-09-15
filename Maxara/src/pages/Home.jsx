@@ -8,6 +8,10 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Autoplay } from "swiper/modules";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addCart, getCart } from "@/redux/cart/cartSlice";
+import { addLikeData } from "@/redux/wishlist/wishlist";
+// import { addLike } from "@/redux/wishlist/wishlist";
 
 function Home() {
   let list = [];
@@ -23,6 +27,37 @@ function Home() {
   const [steelDeal, setSteelDeal] = useState([]);
   let navigate = useNavigate();
   // console.log("steelDeal", steelDeal);
+
+  const dispatch = useDispatch();
+
+  const handleAddToCart = async (product) => {
+    console.log("PRODUCT ID:", product);
+    alert("cart added");
+    const result = await dispatch(
+      addCart({
+        product: product,
+        quantity: 1,
+      }),
+    );
+
+    if (addCart.fulfilled.match(result)) {
+      dispatch(getCart());
+    }
+
+    console.log("ADD CART RESULT:", result);
+  };
+
+  function addtoWishList(likePro) {
+
+  console.log("LIKE PRODUCT:", likePro);
+  console.log("PRODUCT ID:", likePro._id);
+
+  dispatch(
+    addLikeData({
+      productId: likePro._id,
+    })
+  );
+}
 
   const getBanner = async () => {
     try {
@@ -196,7 +231,7 @@ function Home() {
             to-gray-100
             cursor-pointer
           "
-                  onClick={() => navigate(`/shop/${value._id}`)}
+                  // onClick={() => navigate(`/shop/${value._id}`)}
                 >
                   {/* ================= NORMAL IMAGE ================= */}
                   <img
@@ -241,10 +276,6 @@ function Home() {
 
                   {/* ================= LIKE BUTTON ================= */}
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      likeFun(value._id);
-                    }}
                     className={`
               absolute
               top-3
@@ -262,8 +293,9 @@ function Home() {
                   : "bg-white/90 text-blue-600"
               }
             `}
+                    onClick={()=>addtoWishList (value)}
                   >
-                    <i className="fa-regular fa-heart text-lg"></i>
+                    dlike
                   </button>
 
                   {/* ================= OFFER BADGE ================= */}
@@ -374,6 +406,10 @@ function Home() {
                         {value.offer} OFF
                       </span>
                     )}
+                    {/* cart button */}
+                    <button onClick={() => handleAddToCart(value)}>
+                      Add to Cart
+                    </button>
                   </div>
                 </div>
               </div>
@@ -439,25 +475,24 @@ function Home() {
             }}
             loop
           >
-            {budgetcard
-              .map((value) => (
-                <SwiperSlide>
-                  <div>
-                    <center>
-                      <img
-                        src={value.url}
-                        alt="card"
-                        style={{
-                          height: "300px",
-                          width: "250px",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => navigate(`/product/${value._id}`)}
-                      />
-                    </center>
-                  </div>
-                </SwiperSlide>
-              ))}
+            {budgetcard.map((value) => (
+              <SwiperSlide>
+                <div>
+                  <center>
+                    <img
+                      src={value.url}
+                      alt="card"
+                      style={{
+                        height: "300px",
+                        width: "250px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => navigate(`/product/${value._id}`)}
+                    />
+                  </center>
+                </div>
+              </SwiperSlide>
+            ))}
           </Swiper>
         </div>
         <br />
