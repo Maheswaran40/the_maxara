@@ -10,5 +10,5 @@ node_modules/
 *.tmp
 
 # Ignore all .env files, but keep one specific production template
-.env*
+.env
 !.env.production
