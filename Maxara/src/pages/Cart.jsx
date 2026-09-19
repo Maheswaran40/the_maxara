@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getCart, deleteCart } from "../redux/cart/cartSlice";
-
+import { getCart, deleteCart,updateCart } from "../redux/cart/cartSlice";
+import { Minus, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 const Cart = () => {
   const dispatch = useDispatch();
-
+  const navigate = useNavigate()
   const { cartItems, loading, loaded } = useSelector((state) => state.cart);
   console.log("cartItems from cart", cartItems);
 
@@ -16,17 +17,17 @@ const Cart = () => {
   }, [dispatch, loaded]);
 
   // Delete cart item
-const handleDelete = async (cartId) => {
-  console.log("DELETE CART ID RECEIVED:", cartId);
+  const handleDelete = async (cartId) => {
+    console.log("DELETE CART ID RECEIVED:", cartId);
 
-  const result = await dispatch(deleteCart(cartId));
+    const result = await dispatch(deleteCart(cartId));
 
-  if (deleteCart.fulfilled.match(result)) {
-    console.log("DELETE SUCCESS:", result);
-  } else {
-    console.log("DELETE FAILED:", result);
-  }
-};
+    if (deleteCart.fulfilled.match(result)) {
+      console.log("DELETE SUCCESS:", result);
+    } else {
+      console.log("DELETE FAILED:", result);
+    }
+  };
 
   if (loading) {
     return (
@@ -44,7 +45,7 @@ const handleDelete = async (cartId) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ================= HEADER ================= */}
         <div className="mb-8">
-          <p className="text-sm text-gray-500 mb-2">Home / Cart</p>
+          <p className="text-sm text-gray-500 mb-2" onClick={()=>navigate("/")}>Home / Cart</p>
 
           <div className="flex items-center justify-between">
             <div>
@@ -148,7 +149,7 @@ const handleDelete = async (cartId) => {
                                 console.log("DELETE BUTTON ITEM:", item);
                                 console.log("DELETE BUTTON CART ID:", item._id);
 
-                                dispatch(deleteCart(item._id));
+                                handleDelete(item._id);
                               }}
                             >
                               <svg
@@ -182,8 +183,42 @@ const handleDelete = async (cartId) => {
                               Quantity
                             </p>
 
-                            <div className="border border-gray-200 rounded-lg px-4 py-2 text-sm font-medium">
-                              {item.quantity}
+                            <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                              {/* DECREASE */}
+                              <button
+                                onClick={() =>
+                                  dispatch(
+                                    updateCart({
+                                      cartId: item._id,
+                                      quantity: item.quantity - 1,
+                                    }),
+                                  )
+                                }
+                                disabled={item.quantity <= 1}
+                                className="w-9 h-9 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40"
+                              >
+                                <Minus size={16} />
+                              </button>
+
+                              {/* QUANTITY */}
+                              <span className="w-10 text-center text-sm font-semibold">
+                                {item.quantity}
+                              </span>
+
+                              {/* INCREASE */}
+                              <button
+                                onClick={() =>
+                                  dispatch(
+                                    updateCart({
+                                      cartId: item._id,
+                                      quantity: item.quantity + 1,
+                                    }),
+                                  )
+                                }
+                                className="w-9 h-9 flex items-center justify-center hover:bg-gray-100"
+                              >
+                                <Plus size={16} />
+                              </button>
                             </div>
                           </div>
 

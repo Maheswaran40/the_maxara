@@ -3,7 +3,6 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_LIKE_API;
 
-
 // ===============================
 // ADD WISHLIST
 // ===============================
@@ -26,16 +25,14 @@ export const addLikeData = createAsyncThunk(
       console.log("ADD LIKE RESPONSE:", response.data);
 
       return response.data;
-
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
-        "Failed to add wishlist"
+          "Failed to add wishlist"
       );
     }
   }
 );
-
 
 // ===============================
 // GET WISHLIST
@@ -53,19 +50,17 @@ export const getLike = createAsyncThunk(
         }
       );
 
-      console.log("GET LIKE RESPONSE:", response.data);
+      console.log("GET LIKE RESPONSE:", response.data.data);
 
       return response.data;
-
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
-        "Failed to fetch wishlist"
+          "Failed to fetch wishlist"
       );
     }
   }
 );
-
 
 // ===============================
 // DELETE WISHLIST
@@ -83,20 +78,20 @@ export const deleteLike = createAsyncThunk(
         }
       );
 
+      console.log("DELETE LIKE RESPONSE:", response.data);
+
       return {
         wishlistId,
         message: response.data.message,
       };
-
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
-        "Failed to delete wishlist"
+          "Failed to delete wishlist"
       );
     }
   }
 );
-
 
 // ===============================
 // SLICE
@@ -115,7 +110,10 @@ export const likeStore = createSlice({
 
   extraReducers: (builder) => {
 
-    // ADD
+    // ===============================
+    // ADD WISHLIST
+    // ===============================
+
     builder
       .addCase(addLikeData.pending, (state) => {
         state.loading = true;
@@ -130,7 +128,6 @@ export const likeStore = createSlice({
           action.payload
         );
 
-        state.likeItem.push(action.payload.wishlist);
       })
 
       .addCase(addLikeData.rejected, (state, action) => {
@@ -138,11 +135,14 @@ export const likeStore = createSlice({
         state.error = action.payload;
       });
 
+    // ===============================
+    // GET WISHLIST
+    // ===============================
 
-    // GET
     builder
       .addCase(getLike.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
 
       .addCase(getLike.fulfilled, (state, action) => {
@@ -153,7 +153,16 @@ export const likeStore = createSlice({
           action.payload
         );
 
-        state.likeItem = action.payload.data;
+
+        const wishlistData =
+          action.payload?.data || [];
+
+        state.likeItem = wishlistData.filter(Boolean);
+
+        console.log(
+          "CLEAN WISHLIST:",
+          state.likeItem
+        );
       })
 
       .addCase(getLike.rejected, (state, action) => {
@@ -161,19 +170,30 @@ export const likeStore = createSlice({
         state.error = action.payload;
       });
 
+    // ===============================
+    // DELETE WISHLIST
+    // ===============================
 
-    // DELETE
     builder
+      .addCase(deleteLike.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
       .addCase(deleteLike.fulfilled, (state, action) => {
+        state.loading = false;
+
         state.likeItem = state.likeItem.filter(
-          (item) => item._id !== action.payload.wishlistId
+          (item) =>
+            item &&
+            item._id !== action.payload.wishlistId
         );
       })
 
       .addCase(deleteLike.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload;
       });
-
   },
 });
 

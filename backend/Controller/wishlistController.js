@@ -1,42 +1,42 @@
 const likeModel = require("../Model/wishlist")
 
 const addLike = async (req, res) => {
-    console.log("likeData fun", req.user);
-    try {
-        const { productId } = req.body;
-        const existingPro = await likeModel.findOne({
-            user: req.user.id,
-            product: productId
-        })
+  console.log("likeData fun", req.user);
+  try {
+    const { productId } = req.body;
+    const existingPro = await likeModel.findOne({
+      user: req.user.id,
+      product: productId
+    })
 
-        if (existingPro) {
-            console.log("already saved");
-            return res.status(202).json({
-                success: false,
-                message: "already in wishlist",
-                wishlist: existingPro,
-            })
+    if (existingPro) {
+      console.log("already saved");
+      return res.status(202).json({
+        success: false,
+        message: "already in wishlist",
+        wishlist: existingPro,
+      })
 
-        }
-
-
-        const wishlist = await likeModel.create({
-            user: req.user.id,
-            product: productId,
-        })
-        res.status(201).json({
-            success: true,
-            message: "Product added to wishlist",
-            wishlist,
-        });
     }
-    catch (error) {
+
+
+    const wishlist = await likeModel.create({
+      user: req.user.id,
+      product: productId,
+    })
+    res.status(201).json({
+      success: true,
+      message: "Product added to wishlist",
+      wishlist,
+    });
+  }
+  catch (error) {
     res.status(500).json({
       success: false,
       message: error.message,
     });
   }
-    
+
 }
 
 
@@ -52,7 +52,10 @@ const getWishList = async (req, res) => {
       .find({ user: userId })
       .populate("product");
 
-    console.log("GET LIKE wishlistItems:", wishListItems);
+   console.log(
+  "POPULATED PRODUCT:",
+  wishListItems[0]?.product
+);
 
     return res.status(200).json({
       success: true,
@@ -73,10 +76,10 @@ const getWishList = async (req, res) => {
 
 const deleteWishList = async (req, res) => {
   try {
-    const { LikeId } = req.params;
+    const { wishlistId  } = req.params;
 
     const wishListItem = await likeModel.findOneAndDelete({
-      _id: LikeId,
+      _id: wishlistId,
       user: req.user.id,
     });
 
@@ -102,4 +105,4 @@ const deleteWishList = async (req, res) => {
 };
 
 
-module.exports = {addLike,getWishList,deleteWishList}
+module.exports = { addLike, getWishList, deleteWishList }

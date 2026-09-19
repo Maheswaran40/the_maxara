@@ -8,13 +8,14 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Autoplay } from "swiper/modules";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addCart, getCart } from "@/redux/cart/cartSlice";
-import { addLikeData } from "@/redux/wishlist/wishlist";
+import { addLikeData, getLike } from "@/redux/wishlist/wishlist";
+import { Heart, ShoppingCart } from "lucide-react";
+import { toast } from "react-toastify";
 // import { addLike } from "@/redux/wishlist/wishlist";
 
 function Home() {
-  let list = [];
   const [bannerData, getBannerData] = useState([]);
   const [dataBanner2, setDataBanner2] = useState([]);
   const [roundBatch, getroundBatch] = useState([]);
@@ -32,7 +33,7 @@ function Home() {
 
   const handleAddToCart = async (product) => {
     console.log("PRODUCT ID:", product);
-    alert("cart added");
+    toast.success("data added to cart");
     const result = await dispatch(
       addCart({
         product: product,
@@ -47,17 +48,18 @@ function Home() {
     console.log("ADD CART RESULT:", result);
   };
 
-  function addtoWishList(likePro) {
+  const likeItem = useSelector((state) => state.wishlist.likeItem);
 
-  console.log("LIKE PRODUCT:", likePro);
-  console.log("PRODUCT ID:", likePro._id);
-
-  dispatch(
-    addLikeData({
-      productId: likePro._id,
-    })
-  );
-}
+  async function addtoWishList(likePro) {
+    console.log("LIKE PRODUCT:", likePro);
+    console.log("PRODUCT ID:", likePro._id);
+    await dispatch(
+      addLikeData({
+        productId: likePro._id,
+      }),
+    );
+    dispatch(getLike());
+  }
 
   const getBanner = async () => {
     try {
@@ -194,8 +196,6 @@ function Home() {
               const productName = value.name?.trim().toLowerCase();
 
               // Hover product name
-              // Example:
-              // "Nike Air Max hover" -> "Nike Air Max"
               const hoverProductName = item.name
                 ?.trim()
                 .replace(/\s+hover\s*$/i, "")
@@ -204,6 +204,10 @@ function Home() {
 
               return productName === hoverProductName;
             });
+
+            const isLiked = likeItem.some(
+              (item) => item?.product?._id === value._id,
+            );
 
             return (
               <div
@@ -277,25 +281,24 @@ function Home() {
                   {/* ================= LIKE BUTTON ================= */}
                   <button
                     className={`
-              absolute
-              top-3
-              right-3
-              z-30
-              p-2
-              rounded-full
-              shadow-md
-              transition-all
-              duration-300
-              hover:scale-110
-              ${
-                list.some((item) => item._id === value._id)
-                  ? "bg-red-500 text-white"
-                  : "bg-white/90 text-blue-600"
-              }
-            `}
-                    onClick={()=>addtoWishList (value)}
+    absolute
+    top-3
+    right-3
+    z-30
+    p-2
+    rounded-full
+    shadow-md
+    transition-all
+    duration-300
+    hover:scale-110
+    ${isLiked ? "bg-red-500 text-white" : "bg-white/90 text-blue-600"}
+  `}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addtoWishList(value);
+                    }}
                   >
-                    dlike
+                    <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
                   </button>
 
                   {/* ================= OFFER BADGE ================= */}
@@ -407,8 +410,28 @@ function Home() {
                       </span>
                     )}
                     {/* cart button */}
-                    <button onClick={() => handleAddToCart(value)}>
-                      Add to Cart
+                    <button
+                      onClick={() => handleAddToCart(value)}
+                      className="
+    flex
+    items-center
+    justify-center
+    gap-2
+    px-3
+    py-2
+    rounded-lg
+    bg-blue-600
+    text-white
+    text-sm
+    font-medium
+    hover:bg-blue-700
+    hover:scale-105
+    transition-all
+    duration-200
+  "
+                    >
+                      <ShoppingCart size={18} />
+                      <span>Add to Cart</span>
                     </button>
                   </div>
                 </div>

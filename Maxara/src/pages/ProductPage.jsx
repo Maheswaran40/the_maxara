@@ -236,7 +236,7 @@ function ProductPage() {
                   <button
                     className="like-button"
                     style={{ border: "1px solid blue" }}
-                    // onClick={(e) => cartFun(selectProduct._id, e)}
+                    
                   >
                     <i className="fa-solid fa-cart-shopping nav-icon"></i>&nbsp;
                     Add to cart

@@ -18,6 +18,9 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+import { addCart, getCart } from "@/redux/cart/cartSlice";
 
 function CategoryProduct() {
   const { folder } = useParams();
@@ -36,6 +39,12 @@ function CategoryProduct() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const itemsPerPage = 8;
+
+
+
+
+
+  
 
   // Fetch products with pagination
   const getCategoryProducts = async () => {
@@ -610,6 +619,26 @@ const ProductCard = ({ product, products, onProductClick }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
+    // cart
+  const dispatch = useDispatch();
+  
+    const handleAddToCart = async (product) => {
+      console.log("PRODUCT ID:", product);
+      toast.success("data added to cart");
+      const result = await dispatch(
+        addCart({
+          product: product,
+          quantity: 1,
+        }),
+      );
+  
+      if (addCart.fulfilled.match(result)) {
+        dispatch(getCart());
+      }
+  
+      console.log("ADD CART RESULT:", result);
+    };
+
   const hoverImage = products?.find(
     (item) =>
       item.category === "hover" &&
@@ -717,10 +746,7 @@ const ProductCard = ({ product, products, onProductClick }) => {
         </div> */}
 
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            // Add to cart
-          }}
+        onClick={()=>handleAddToCart(product)}
           className="w-full bg-gradient-to-r from-blue-600 mt-2 to-indigo-600 text-white py-2.5 rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-2"
         >
           <ShoppingBag className="w-4 h-4" />

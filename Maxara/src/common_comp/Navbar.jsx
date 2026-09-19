@@ -16,10 +16,11 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-import AsyncSelect from 'react-select/async';
-import { Navigate, useNavigate } from "react-router-dom";
+import AsyncSelect from "react-select/async";
+import { useNavigate, useLocation } from "react-router-dom";
 function Navbar() {
-  let navigate = useNavigate()
+  let navigate = useNavigate();
+  const location = useLocation();
   const SHEET_SIDES = ["left"];
   return (
     <>
@@ -73,8 +74,15 @@ function Navbar() {
 
           {/* Right Icons */}
           <div className="flex items-center gap-10">
-            <div className="flex flex-col items-center cursor-pointer">
-              <FaHome className="text-xl text-blue-700" />
+            <div
+              className="flex flex-col items-center cursor-pointer"
+              onClick={() => navigate("/")}
+            >
+              <FaHome
+                className={`text-xl ${
+                  location.pathname === "/" ? "text-blue-500" : "text-gray-500"
+                }`}
+              />
               <span className="text-sm">Home</span>
             </div>
 
@@ -83,12 +91,18 @@ function Navbar() {
               <span className="text-sm">Logout</span>
             </div>
 
-            <div className="flex flex-col items-center cursor-pointer" onClick={()=>navigate("/like")}>
+            <div
+              className="flex flex-col items-center cursor-pointer"
+              onClick={() => navigate("/like")}
+            >
               <FaRegHeart className="text-xl" />
               <span className="text-sm">Wishlist</span>
             </div>
 
-            <div className="flex flex-col items-center cursor-pointer" onClick={()=>navigate("/cart")}>
+            <div
+              className="flex flex-col items-center cursor-pointer"
+              onClick={() => navigate("/cart")}
+            >
               <MdOutlineShoppingCart className="text-xl" />
               <span className="text-sm">Cart</span>
             </div>
