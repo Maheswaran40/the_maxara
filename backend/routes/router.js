@@ -1,14 +1,43 @@
 const express = require("express");
 const router = express.Router();
 
-const { addData, getData, loginUser,verifyOtp } = require("../Controller/userDataController");
+const { addData, getData, loginUser,verifyOtp ,logoutUser,forgotPassword,verifyResetOtp,resetPassword,} = require("../Controller/userDataController");
 const authMiddleware = require("../middleware/auth");
 
 // 🔹 Register
 router.post("/register", addData);
-router.post("/verify-otp", verifyOtp);
+
 // 🔹 Login (POST not GET)
 router.post("/login", loginUser);
+
+// VERIFY SIGNUP OTP
+router.post("/verify-otp", verifyOtp);
+
+// FORGOT PASSWORD
+router.post(
+    "/forgot-password",
+    forgotPassword
+);
+
+// VERIFY RESET PASSWORD OTP
+router.post(
+    "/verify-reset-otp",
+    verifyResetOtp
+);
+
+
+// RESET PASSWORD
+router.post(
+    "/reset-password",
+    resetPassword
+);
+
+
+// logout
+router.post(
+    "/logout",
+    logoutUser
+);
 
 // 🔹 Get all users
 router.get("/users", getData);

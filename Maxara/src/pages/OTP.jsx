@@ -10,10 +10,17 @@ function OTP() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const verify_otp = import.meta.env.VITE_VERIFYOTP_API;
+  // Signup OTP verification API
+  const verifyOtp = import.meta.env.VITE_VERIFYOTP_API;
 
-  // Get email from Signup page
-  const userEmail = location.state?.userEmail;
+  // Forgot-password OTP verification API
+  const resetPassOtp = import.meta.env.VITE_RESET_PASS_OTP_API;
+
+  // Get data from previous page
+  const userEmail =
+    location.state?.userEmail || location.state?.email;
+
+  const purpose = location.state?.purpose || "signup";
 
   function handleChange(e, index) {
     const value = e.target.value;
@@ -73,8 +80,14 @@ function OTP() {
 
     // Check email
     if (!userEmail) {
-      alert("Email not found. Please signup again.");
-      navigate("/signup");
+      alert("Email not found. Please try again.");
+
+      if (purpose === "forgot-password") {
+        navigate("/forgot-password");
+      } else {
+        navigate("/signup");
+      }
+
       return;
     }
 
@@ -86,30 +99,81 @@ function OTP() {
 
     console.log("Email:", userEmail);
     console.log("OTP:", otpValue);
+    console.log("Purpose:", purpose);
 
     try {
-      const response = await axios.post(
-        verify_otp,
-        {
-          userEmail: userEmail,
-          otp: otpValue,
-        }
-      );
+      let response;
+
+      // =========================
+      // SIGNUP OTP
+      // =========================
+      if (purpose === "signup") {
+        response = await axios.post(
+          verifyOtp,
+          {
+            userEmail: userEmail,
+            otp: otpValue,
+          }
+        );
+      }
+
+      // =========================
+      // FORGOT PASSWORD OTP
+      // =========================
+      else if (purpose === "forgot-password") {
+        response = await axios.post(
+          resetPassOtp,
+          {
+            userEmail: userEmail,
+            otp: otpValue,
+          }
+        );
+        console.log("opt clicked");
+        
+
+      }
 
       console.log("OTP Response:", response.data);
 
-      if (
-        response.data.message ===
-        "Email verified successfully"
-      ) {
-        alert("Email verified successfully!");
+      // =========================
+      // SIGNUP SUCCESS
+      // =========================
+      if (purpose === "signup") {
+        if (
+          response.data.message ===
+          "Email verified successfully"
+        ) {
+          alert("Email verified successfully!");
 
-        // Go to login
-        navigate("/login");
-      } else {
-        alert(response.data.message);
+          navigate("/login");
+        } else {
+          alert(
+            response.data.message ||
+              "OTP verification failed"
+          );
+        }
       }
 
+      // =========================
+      // FORGOT PASSWORD SUCCESS
+      // =========================
+      else if (purpose === "forgot-password") {
+        if (response.data.success) {
+          alert("OTP verified successfully!");
+
+          navigate("/reset-password", {
+            state: {
+              email: userEmail,
+              otp: otpValue,
+            },
+          });
+        } else {
+          alert(
+            response.data.message ||
+              "OTP verification failed"
+          );
+        }
+      }
     } catch (error) {
       console.error(
         "OTP Verification Error:",
@@ -118,8 +182,9 @@ function OTP() {
 
       if (error.response) {
         alert(
-          error.response.data.message ||
-          "OTP verification failed"
+          error.response.data.error ||
+            error.response.data.message ||
+            "OTP verification failed"
         );
       } else {
         alert("Server error");
@@ -129,9 +194,7 @@ function OTP() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-
       <div className="w-[350px] rounded-xl border p-8 shadow-lg">
-
         <h2 className="mb-2 text-center text-2xl font-bold">
           Verify OTP
         </h2>
@@ -140,17 +203,13 @@ function OTP() {
           Enter the 4-digit OTP sent to your email
         </p>
 
-        {/* Show email */}
         <p className="mb-5 text-center text-sm">
           {userEmail}
         </p>
 
         <form onSubmit={handleSubmit}>
-
           <div className="mb-6 flex justify-center gap-3">
-
             {otp.map((digit, index) => (
-
               <input
                 key={index}
                 ref={(element) => {
@@ -169,9 +228,7 @@ function OTP() {
                 onPaste={handlePaste}
                 className="h-14 w-12 rounded-lg border-2 text-center text-2xl font-bold outline-none focus:border-blue-500"
               />
-
             ))}
-
           </div>
 
           <button
@@ -180,11 +237,8 @@ function OTP() {
           >
             Verify OTP
           </button>
-
         </form>
-
       </div>
-
     </div>
   );
 }

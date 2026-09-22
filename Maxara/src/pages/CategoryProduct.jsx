@@ -1,6 +1,11 @@
 // CategoryProduct.jsx - Complete Component with Visible Pagination
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  Link,
+  useSearchParams,
+} from "react-router-dom";
 import axios from "axios";
 import {
   Heart,
@@ -24,10 +29,16 @@ import { addCart, getCart } from "@/redux/cart/cartSlice";
 
 function CategoryProduct() {
   const { folder } = useParams();
+  const [searchParams] = useSearchParams();
+
+ // Get search text from /search?q=nike
+  const search = searchParams.get("q");
+
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [sortBy, setSortBy] = useState("Most Relevant");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [rangevalue, setRangevalue] = useState(3000);
@@ -40,96 +51,125 @@ function CategoryProduct() {
   const [totalProducts, setTotalProducts] = useState(0);
   const itemsPerPage = 8;
 
-
-
-
-
-  
+   console.log("FOLDER:", folder);
+  console.log("SEARCH:", search);
 
   // Fetch products with pagination
   const getCategoryProducts = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  try {
+    setLoading(true);
+    setError(null);
 
-      const response = await axios.get(import.meta.env.VITE_API_GETPRODUCTS, {
-        params: {
-          folder: folder,
-          page: currentPage,
-          limit: itemsPerPage,
-          category: folder,
-          sort: sortBy,
-          minPrice: rangevalue === 3000 ? 0 : 100,
-          maxPrice: rangevalue,
-        },
-      });
+    const params = {
+      page: currentPage,
+      limit: itemsPerPage,
+    };
 
-      const banner_responce = await axios.get(
-        import.meta.env.VITE_API_GETBANNER,
-      );
-      console.log("banner_responce", banner_responce);
-      setBagBanner(banner_responce.data.bag_banner);
-      setBagCard(banner_responce.data.bag_card);
+    // CATEGORY
+    if (folder) {
+      params.folder = folder;
+      params.category = folder;
+    }
 
-      console.log("API Response:", response.data); // Debug log
+    // SEARCH
+    if (search) {
+      params.search = search;
+    }
 
-      // Handle different API response structures
-      let productsData = [];
-      let totalProductsCount = 0;
-      let totalPagesCount = 1;
+    // Price
+    if (rangevalue !== 3000) {
+      params.minPrice = 100;
+      params.maxPrice = rangevalue;
+    }
 
-      if (response.data.products) {
-        productsData = response.data.products;
-        totalProductsCount =
-          response.data.totalProducts ||
-          response.data.total ||
-          response.data.count ||
-          productsData.length;
-        totalPagesCount =
-          response.data.totalPages ||
-          response.data.pages ||
-          Math.ceil(totalProductsCount / itemsPerPage);
-      } else if (Array.isArray(response.data)) {
-        productsData = response.data;
-        totalProductsCount = productsData.length;
-        totalPagesCount = Math.ceil(totalProductsCount / itemsPerPage);
-      } else if (response.data.data) {
-        productsData = response.data.data;
-        totalProductsCount =
-          response.data.total ||
-          response.data.totalProducts ||
-          productsData.length;
-        totalPagesCount =
-          response.data.totalPages ||
-          Math.ceil(totalProductsCount / itemsPerPage);
+    // Sort
+    params.sort = sortBy;
+
+    console.log("API PARAMS:", params);
+
+    const response = await axios.get(
+      import.meta.env.VITE_API_GETPRODUCTS,
+      {
+        params,
       }
+    );
 
-      setProducts(productsData);
-      setTotalProducts(totalProductsCount);
-      setTotalPages(totalPagesCount > 0 ? totalPagesCount : 1);
+    console.log("API RESPONSE:", response.data);
 
-      console.log("Total Products:", totalProductsCount);
-      console.log("Total Pages:", totalPagesCount);
-    } catch (err) {
-      console.error("Error fetching products:", err);
-      setError("Failed to load products. Please try again.");
-    } finally {
-      setLoading(false);
+    const banner_responce = await axios.get(
+      import.meta.env.VITE_API_GETBANNER
+    );
+
+    console.log("banner_responce", banner_responce);
+
+    setBagBanner(banner_responce.data.bag_banner);
+    setBagCard(banner_responce.data.bag_card);
+
+    // Product response
+    let productsData = [];
+    let totalProductsCount = 0;
+    let totalPagesCount = 1;
+
+    if (response.data.products) {
+      productsData = response.data.products;
+
+      totalProductsCount =
+        response.data.totalProducts ||
+        response.data.total ||
+        response.data.count ||
+        productsData.length;
+
+      totalPagesCount =
+        response.data.totalPages ||
+        response.data.pages ||
+        Math.ceil(totalProductsCount / itemsPerPage);
+    } else if (Array.isArray(response.data)) {
+      productsData = response.data;
+
+      totalProductsCount = productsData.length;
+
+      totalPagesCount = Math.ceil(
+        totalProductsCount / itemsPerPage
+      );
+    } else if (response.data.data) {
+      productsData = response.data.data;
+
+      totalProductsCount =
+        response.data.total ||
+        response.data.totalProducts ||
+        productsData.length;
+
+      totalPagesCount =
+        response.data.totalPages ||
+        Math.ceil(totalProductsCount / itemsPerPage);
     }
-  };
 
-  useEffect(() => {
-    if (folder) {
-      setCurrentPage(1);
-      getCategoryProducts();
-    }
-  }, [folder]);
+    setProducts(productsData);
+    setTotalProducts(totalProductsCount);
+    setTotalPages(
+      totalPagesCount > 0 ? totalPagesCount : 1
+    );
 
-  useEffect(() => {
-    if (folder) {
-      getCategoryProducts();
-    }
-  }, [currentPage, sortBy]);
+    console.log("TOTAL PRODUCTS:", totalProductsCount);
+    console.log("TOTAL PAGES:", totalPagesCount);
+  } catch (err) {
+    console.error("Error fetching products:", err);
+
+    setError(
+      "Failed to load products. Please try again."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
+ useEffect(() => {
+  setCurrentPage(1);
+}, [folder, search]);
+
+useEffect(() => {
+  getCategoryProducts();
+}, [folder, search, currentPage, sortBy, rangevalue]);
 
   // Handle page change
   const handlePageChange = (pageNumber) => {
@@ -147,6 +187,9 @@ function CategoryProduct() {
 
   // Get category display name
   const getCategoryName = () => {
+     if (search) {
+    return `Search results for "${search}"`;
+  }
     const names = {
       bags: "Bags & Backpacks",
       cycle: "Cycling & Skating",
@@ -264,20 +307,7 @@ function CategoryProduct() {
       ) : (
         ""
       )}
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <h1 className="text-4xl md:text-5xl font-bold text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2 tracking-tight">
-          {getCategoryName()}
-        </h1>
-
-        {/* Breadcrumb */}
-        <div className="text-center text-sm text-gray-500 mb-8">
-          <Link to="/" className="hover:text-blue-600">
-            Home
-          </Link>
-          <span className="mx-2">/</span>
-          <span className="text-gray-700 font-medium">{getCategoryName()}</span>
-        </div>
+      <div className="container px-4 py-8">
 
         {/* Filter Bar - Mobile */}
         <div className="lg:hidden mb-6">
@@ -402,7 +432,7 @@ function CategoryProduct() {
 
                 {/* ✅ PAGINATION - Always show if totalPages > 1 */}
                 {totalPages > 1 && (
-                  <div className="mt-10 flex justify-center">
+                  <div className="mt-10  flex justify-center">
                     <PaginationData
                       currentPage={currentPage}
                       totalPages={totalPages}
@@ -499,18 +529,18 @@ const PaginationData = ({ currentPage, totalPages, onPageChange }) => {
   };
 
   return (
-    <div className="flex items-center gap-3 bg-white px-6 py-4 rounded-2xl shadow-xl border border-gray-100">
+    <div className="flex items-center gap-1 bg-white  px-1 py-4 rounded-2xl shadow-xl border border-gray-100">
       {/* Previous Button */}
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 ${
+        className={`flex items-center w-full lg:w-full lg:text-[15px] text-[10px] gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 ${
           currentPage === 1
             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
             : "bg-blue-500 text-white hover:bg-blue-600 hover:scale-105 shadow-md shadow-blue-500/30"
         }`}
       >
-        <ChevronLeft className="w-5 h-5" />
+        <ChevronLeft className="w-5 h-5 " />
         Previous
       </button>
 
@@ -521,9 +551,9 @@ const PaginationData = ({ currentPage, totalPages, onPageChange }) => {
             key={index}
             onClick={() => typeof page === "number" && onPageChange(page)}
             disabled={page === "..."}
-            className={`min-w-[44px] h-11 rounded-xl font-semibold transition-all duration-200 ${
+            className={`min-w-[44px] lg:text-[15px] text-[12px] h-11  rounded-xl font-semibold transition-all duration-200 ${
               page === currentPage
-                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 scale-110"
+                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 scale-80"
                 : page === "..."
                   ? "text-gray-400 cursor-default"
                   : "text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:scale-105"
@@ -538,7 +568,7 @@ const PaginationData = ({ currentPage, totalPages, onPageChange }) => {
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 ${
+        className={`flex items-center w-full lg:w-full lg:text-[15px] text-[10px] gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 ${
           currentPage === totalPages
             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
             : "bg-blue-500 text-white hover:bg-blue-600 hover:scale-105 shadow-md shadow-blue-500/30"
@@ -557,16 +587,13 @@ const FilterSection = ({ title, items, isColor = false }) => {
 
   return (
     <div className="mb-6 pb-6 border-b border-gray-200 last:border-0 last:mb-0 last:pb-0">
-      
       {/* Accordion Header */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between mb-3"
       >
-        <h4 className="font-semibold text-gray-700">
-          {title}
-        </h4>
+        <h4 className="font-semibold text-gray-700">{title}</h4>
 
         <ChevronDown
           className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${
@@ -593,18 +620,14 @@ const FilterSection = ({ title, items, isColor = false }) => {
                   className="w-5 h-5 rounded-full border-2 border-gray-200 flex-shrink-0"
                   style={{
                     backgroundColor: item.color,
-                    borderColor: item.border
-                      ? "#E5E7EB"
-                      : item.color,
+                    borderColor: item.border ? "#E5E7EB" : item.color,
                   }}
                 />
               )}
 
               <span className="text-sm text-gray-600 group-hover:text-gray-800">
                 {item.label}
-                <span className="text-gray-400 ml-1">
-                  ({item.count})
-                </span>
+                <span className="text-gray-400 ml-1">({item.count})</span>
               </span>
             </label>
           ))}
@@ -619,25 +642,25 @@ const ProductCard = ({ product, products, onProductClick }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-    // cart
+  // cart
   const dispatch = useDispatch();
-  
-    const handleAddToCart = async (product) => {
-      console.log("PRODUCT ID:", product);
-      toast.success("data added to cart");
-      const result = await dispatch(
-        addCart({
-          product: product,
-          quantity: 1,
-        }),
-      );
-  
-      if (addCart.fulfilled.match(result)) {
-        dispatch(getCart());
-      }
-  
-      console.log("ADD CART RESULT:", result);
-    };
+
+  const handleAddToCart = async (product) => {
+    console.log("PRODUCT ID:", product);
+    toast.success("data added to cart");
+    const result = await dispatch(
+      addCart({
+        product: product,
+        quantity: 1,
+      }),
+    );
+
+    if (addCart.fulfilled.match(result)) {
+      dispatch(getCart());
+    }
+
+    console.log("ADD CART RESULT:", result);
+  };
 
   const hoverImage = products?.find(
     (item) =>
@@ -746,7 +769,7 @@ const ProductCard = ({ product, products, onProductClick }) => {
         </div> */}
 
         <button
-        onClick={()=>handleAddToCart(product)}
+          onClick={() => handleAddToCart(product)}
           className="w-full bg-gradient-to-r from-blue-600 mt-2 to-indigo-600 text-white py-2.5 rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-2"
         >
           <ShoppingBag className="w-4 h-4" />

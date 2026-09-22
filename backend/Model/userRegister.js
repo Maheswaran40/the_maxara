@@ -11,12 +11,21 @@ const dataSchema = mongoose.Schema({
     },
     otp: Number,
     otpExpire: Date,
-     isVerified: {
+    isVerified: {
         type: Boolean,
         default: false
     },
-    
-},{ timestamps: true })
+    resetPasswordOTP: {
+        type: String,
+        default: null
+    },
+
+    resetPasswordOTPExpire: {
+        type: Date,
+        default: null
+    }
+
+}, { timestamps: true })
 
 const DataModal = mongoose.model("userdata", dataSchema)
 module.exports = DataModal

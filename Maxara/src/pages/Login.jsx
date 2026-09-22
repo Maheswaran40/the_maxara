@@ -16,45 +16,80 @@ function Login() {
 
   const [loading, setLoading] = useState(false);
 
+  // Show forgot password only when password is wrong
+  const [wrongPassword, setWrongPassword] = useState(false);
+
+
   function handleChange(e) {
+
     const { name, value } = e.target;
 
     setLoginDetails({
       ...loginDetails,
       [name]: value,
     });
+
+    // Hide forgot password when user changes password
+    if (name === "userPass") {
+      setWrongPassword(false);
+    }
   }
 
+
   async function handleSubmit(e) {
+
     e.preventDefault();
 
     try {
+
       setLoading(true);
 
-      console.log("Login Details:", loginDetails);
+      // Hide previous forgot password message
+      setWrongPassword(false);
+
+      console.log(
+        "Login Details:",
+        loginDetails
+      );
+
 
       const response = await axios.post(
         login_API,
-        loginDetails,
+        {
+          userEmail: loginDetails.userEmail,
+          userPassword: loginDetails.userPass,
+        },
         {
           withCredentials: true,
         }
       );
 
-      console.log("Login Response:", response.data);
 
-      if (response.data.message === "Login successful") {
+      console.log(
+        "Login Response:",
+        response.data
+      );
+
+
+      if (
+        response.data.message ===
+        "Login successful"
+      ) {
 
         alert("Login successful!");
 
-        // Go to home page
         navigate("/");
 
       }
 
+
     } catch (error) {
 
-      console.error("Login Error:", error);
+      console.error(
+        "Login Error:",
+        error
+      );
+
 
       if (error.response) {
 
@@ -63,25 +98,32 @@ function Login() {
           error.response.data
         );
 
-        // User not verified
-        if (error.response.status === 403) {
 
-          alert(
-            error.response.data.error ||
-            "Please verify your email before login"
-          );
+        // =========================================
+        // WRONG PASSWORD
+        // =========================================
 
-          // Optional:
-          // navigate("/otp", {
-          //   state: {
-          //     userEmail: loginDetails.userEmail
-          //   }
-          // });
+        if (
+          error.response.status === 400 &&
+          error.response.data.error ===
+            "Invalid password"
+        ) {
+
+          alert("Invalid password");
+
+          // Show Forgot Password button
+          setWrongPassword(true);
 
         }
 
-        // User not found / wrong password
-        else if (error.response.status === 400) {
+
+        // =========================================
+        // USER NOT FOUND
+        // =========================================
+
+        else if (
+          error.response.status === 400
+        ) {
 
           alert(
             error.response.data.error ||
@@ -89,6 +131,27 @@ function Login() {
           );
 
         }
+
+
+        // =========================================
+        // EMAIL NOT VERIFIED
+        // =========================================
+
+        else if (
+          error.response.status === 403
+        ) {
+
+          alert(
+            error.response.data.error ||
+            "Please verify your email before login"
+          );
+
+        }
+
+
+        // =========================================
+        // OTHER ERROR
+        // =========================================
 
         else {
 
@@ -101,7 +164,9 @@ function Login() {
 
       } else {
 
-        alert("Unable to connect to server");
+        alert(
+          "Unable to connect to server"
+        );
 
       }
 
@@ -112,9 +177,15 @@ function Login() {
     }
   }
 
+
   return (
+
     <>
+
       <div id="form-div">
+
+
+        {/* LEFT SIDE */}
 
         <div
           style={{
@@ -123,8 +194,16 @@ function Login() {
           }}
           className="form-sub-div1"
         >
-          <img src={maxara_logo} alt="Maxara Logo" />
+
+          <img
+            src={maxara_logo}
+            alt="Maxara Logo"
+          />
+
         </div>
+
+
+        {/* RIGHT SIDE */}
 
         <div className="login-wrapper">
 
@@ -132,47 +211,97 @@ function Login() {
 
             <div className="login-form">
 
+
               <h2 className="title">
                 Welcome Back
               </h2>
 
+
               <p className="subtitle">
-                Login to continue shopping with MAXARA
+                Login to continue shopping
+                with MAXARA
               </p>
 
-              <form onSubmit={handleSubmit}>
+
+              <form
+                onSubmit={handleSubmit}
+              >
+
+
+                {/* EMAIL */}
 
                 <input
                   type="email"
                   name="userEmail"
                   placeholder="Email"
                   className="form-input"
-                  value={loginDetails.userEmail}
+                  value={
+                    loginDetails.userEmail
+                  }
                   onChange={handleChange}
                   required
                 />
 
+
+                {/* PASSWORD */}
+
                 <input
                   type="password"
-                  name="userPassword"
+                  name="userPass"
                   placeholder="Password"
                   className="form-input"
-                  value={loginDetails.userPassword}
+                  value={
+                    loginDetails.userPass
+                  }
                   onChange={handleChange}
                   required
                 />
+
+
+                {/* FORGOT PASSWORD */}
+
+                {wrongPassword && (
+
+                  <div className="forgot-password-container">
+                    <button
+                      type="button"
+                      className="forgot-password-btn text-blue-400 mb-3 hover:text-red-500"
+                      onClick={() =>
+                        navigate(
+                          "/forgot-password"
+                        )
+                      }
+                    >
+                      Forgot Password
+                    </button>
+
+                  </div>
+
+                )}
+
+
+                {/* LOGIN BUTTON */}
 
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={loading}
                 >
-                  {loading ? "Logging in..." : "Login"}
+
+                  {loading
+                    ? "Logging in..."
+                    : "Login"}
+
                 </button>
+
 
               </form>
 
+
+              {/* SIGNUP */}
+
               <p className="signup-text">
+
                 No account?
 
                 <Link
@@ -181,21 +310,37 @@ function Login() {
                 >
                   Create one
                 </Link>
+
               </p>
+
+
+              {/* BENEFITS */}
 
               <div className="login-benefits">
 
                 <h3>
-                  It’s better when you’re signed Up
+                  It’s better when you’re
+                  signed Up
                 </h3>
 
                 <ul>
-                  <li>🎯 Exclusive Deals & Offers</li>
-                  <li>⚡ Faster Checkout & Easy Returns</li>
-                  <li>🏆 Rewards & Personalized Experience</li>
+
+                  <li>
+                    🎯 Exclusive Deals & Offers
+                  </li>
+
+                  <li>
+                    ⚡ Faster Checkout & Easy Returns
+                  </li>
+
+                  <li>
+                    🏆 Rewards & Personalized Experience
+                  </li>
+
                 </ul>
 
               </div>
+
 
             </div>
 
@@ -204,7 +349,9 @@ function Login() {
         </div>
 
       </div>
+
     </>
+
   );
 }
 

@@ -61,9 +61,11 @@ function Home() {
     dispatch(getLike());
   }
 
-  const getBanner = async () => {
+  const getBanner = async (initialLoad = false) => {
     try {
+      if (!initialLoad) {
       setLoading(true);
+    }
       setError(null);
 
       const response = await axios.get(import.meta.env.VITE_API_GETBANNER);
@@ -105,7 +107,7 @@ function Home() {
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h3 className="text-xl font-semibold text-gray-700 mb-2">{error}</h3>
           <button
-            onClick={getBanner}
+            onClick={() => getBanner(false)}
             className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
           >
             Try Again
@@ -347,7 +349,7 @@ function Home() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/shop/${value._id}`);
+                        navigate(`/product/${value._id}`);
                       }}
                       className="
                 bg-white
