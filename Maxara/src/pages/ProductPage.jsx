@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import "swiper/css";
 import "swiper/css/pagination";
+import { ArrowLeft } from "lucide-react";
 
 function ProductPage() {
   const { productId } = useParams();
@@ -15,6 +16,7 @@ function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  let navigate = useNavigate()
   // GET PRODUCT
   const getProduct = async () => {
     try {
@@ -139,12 +141,12 @@ function ProductPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
-
           {/* =========================
               PRODUCT IMAGE
-          ========================= */}
+              ========================= */}
           <div className="w-full">
-
+              <button onClick={()=>navigate(-1)} className="flex justify-between items-center w-17 border-b-[3px] border-transparent hover:border-black transition-all duration-300  p-1 rounded-[10px]"><ArrowLeft size={15}/>  Back</button>
+            <br />
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
 
               <div className="w-full h-[350px] sm:h-[450px] lg:h-[520px] rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden">
@@ -177,8 +179,7 @@ function ProductPage() {
           {/* =========================
               PRODUCT INFORMATION
           ========================= */}
-          <div className="w-full">
-
+          <div className="w-full mt-[60px]">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-7 lg:p-8">
 
               {/* Product name */}

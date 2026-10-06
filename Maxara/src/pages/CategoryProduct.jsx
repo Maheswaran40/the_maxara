@@ -186,20 +186,20 @@ useEffect(() => {
   };
 
   // Get category display name
-  const getCategoryName = () => {
-     if (search) {
-    return `Search results for "${search}"`;
-  }
-    const names = {
-      bags: "Bags & Backpacks",
-      cycle: "Cycling & Skating",
-      hiking: "Hiking & Trekking",
-      rain: "Rain Essential",
-      shoes: "Shoes",
-      sports: "Sports & Accessories",
-    };
-    return names[folder] || folder?.replace("-", " ") || "Products";
-  };
+  // const getCategoryName = () => {
+  //    if (search) {
+  //   return `Search results for "${search}"`;
+  // }
+  //   const names = {
+  //     bags: "Bags & Backpacks",
+  //     cycle: "Cycling & Skating",
+  //     hiking: "Hiking & Trekking",
+  //     rain: "Rain Essential",
+  //     shoes: "Shoes",
+  //     sports: "Sports & Accessories",
+  //   };
+  //   return names[folder] || folder?.replace("-", " ") || "Products";
+  // };
 
   const sortOptions = [
     "Most Relevant",
@@ -253,7 +253,7 @@ useEffect(() => {
           spaceBetween={10}
           modules={[Navigation, Autoplay, Pagination]}
           autoplay={{ delay: 3000 }}
-          pagination={{ clickable: true }}
+          pagination={{ clickable: true ,size:"10px"}}
           scrollbar={{ draggable: true }}
           breakpoints={{
             320: { slidesPerView: 3 },
@@ -283,11 +283,10 @@ useEffect(() => {
           spaceBetween={10}
           modules={[Navigation, Autoplay, Pagination]}
           autoplay={{ delay: 3000 }}
-          pagination={{ clickable: true }}
           scrollbar={{ draggable: true }}
           breakpoints={{
-            320: { slidesPerView: 3 },
-            768: { slidesPerView: 4 },
+            320: { slidesPerView: 1 },
+            768: { slidesPerView: 1 },
             1024: { slidesPerView: 1 },
           }}
           loop
@@ -331,7 +330,7 @@ useEffect(() => {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar Filters */}
           <aside
-            className={`lg:w-72 xl:w-80 flex-shrink-0 ${isFilterOpen ? "block" : "hidden lg:block"}`}
+            className={`lg:w-66 xl:w-70 flex-shrink-0 ${isFilterOpen ? "block" : "hidden lg:block"}`}
           >
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
@@ -343,7 +342,7 @@ useEffect(() => {
 
               {/* Price Range */}
               <div className="mb-6">
-                <h4 className="font-semibold text-gray-700 mb-3">
+                <h4 className="font-semibold text-gray-700 mb-3 ">
                   Price Range
                 </h4>
                 <div className="flex items-center gap-4 mb-2">
@@ -417,7 +416,7 @@ useEffect(() => {
             {/* Products Grid */}
             {products.length > 0 ? (
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                   {products
                     .filter((product) => product.category !== "hover")
                     .map((product) => (
@@ -534,14 +533,14 @@ const PaginationData = ({ currentPage, totalPages, onPageChange }) => {
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className={`flex items-center w-full lg:w-full lg:text-[15px] text-[10px] gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 ${
+        className={`flex items-center w-full lg:w-full lg:text-[15px] text-[10px] gap-2 px-2 py-1 rounded-xl font-semibold transition-all duration-200 ${
           currentPage === 1
             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
             : "bg-blue-500 text-white hover:bg-blue-600 hover:scale-105 shadow-md shadow-blue-500/30"
         }`}
       >
         <ChevronLeft className="w-5 h-5 " />
-        Previous
+        Prev
       </button>
 
       {/* Page Numbers */}
@@ -568,7 +567,7 @@ const PaginationData = ({ currentPage, totalPages, onPageChange }) => {
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className={`flex items-center w-full lg:w-full lg:text-[15px] text-[10px] gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 ${
+        className={`flex items-center w-full lg:w-full lg:text-[15px] text-[10px] gap-2 px-2 py-1 rounded-xl font-semibold transition-all duration-200 ${
           currentPage === totalPages
             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
             : "bg-blue-500 text-white hover:bg-blue-600 hover:scale-105 shadow-md shadow-blue-500/30"
@@ -706,7 +705,7 @@ const ProductCard = ({ product, products, onProductClick }) => {
           className="absolute top-3 right-3 z-30 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
         >
           <Heart
-            className={`w-5 h-5 ${
+            className={`w-4 h-4 ${
               isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
             }`}
           />
@@ -754,11 +753,7 @@ const ProductCard = ({ product, products, onProductClick }) => {
             </span>
           )}
 
-          {product.offer && (
-            <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-              {product.offer} OFF
-            </span>
-          )}
+       
         </div>
         {/* <div className="flex items-center gap-1 mb-3 mt-2">
           <div className="flex text-yellow-400">
@@ -770,7 +765,7 @@ const ProductCard = ({ product, products, onProductClick }) => {
 
         <button
           onClick={() => handleAddToCart(product)}
-          className="w-full bg-gradient-to-r from-blue-600 mt-2 to-indigo-600 text-white py-2.5 rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-2"
+          className="w-full lg:h-half h-6  bg-gradient-to-r from-blue-600 mt-2 to-[var(--hover-button)] text-white py-2.5 rounded-md font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-2"
         >
           <ShoppingBag className="w-4 h-4" />
           Add to Cart

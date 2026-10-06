@@ -11,7 +11,13 @@ const authMiddleware = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
-        console.log(req.user.id );
+        console.log(req.user.id);
+        if (decoded.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Admin access required"
+            });
+        }
         next(); //tells Express to go to the next route.
     } catch (err) {
         return res.status(401).json({ message: "Invalid Token" });

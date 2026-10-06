@@ -12,10 +12,15 @@ import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/Resetpassword";
+import Mobile_nav from "./common_comp/Mobile_nav";
+import ScrollToTop from "./ScrollToTop";
+import { useState } from "react";
+import Error from "./pages/Error";
 
 function App() {
   return (
     <BrowserRouter>
+    <ScrollToTop/>
       <AppContent />
     </BrowserRouter>
   );
@@ -27,12 +32,13 @@ function AppContent() {
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
     location.pathname === "/otp" || location.pathname === "/reset-password" || location.pathname === "/forgot-password";
-
+   const [sheetOpen, setSheetOpen] = useState(false);
   return (
     <>
-      {!hideLayout && <Navbar />}
+      {!hideLayout && <Navbar sheetOpen={sheetOpen}
+        setSheetOpen={setSheetOpen} />}
       <Routes>
-        <Route path="/" element={<Home />} />{" "}
+        <Route path="/" element={<Home  openSheet={() => setSheetOpen(true)}/>} />{" "}
         {/* authentication */}
         <Route path="/signup" element={<Signup />} />
         <Route path="/otp" element={<OTP />} />
@@ -48,7 +54,10 @@ function AppContent() {
         {/* Dynamic folder route */}
         <Route path="/cart" element={<Cart />} />
         <Route path="/like" element={<Wishlist />} />
+        <Route path="*" element={<Error />} />
+
       </Routes>
+      {!hideLayout && <Mobile_nav />}
       {!hideLayout && <Footer />}
     </>
   );

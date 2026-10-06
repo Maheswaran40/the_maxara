@@ -15,7 +15,7 @@ import { Heart, ShoppingCart } from "lucide-react";
 import { toast } from "react-toastify";
 // import { addLike } from "@/redux/wishlist/wishlist";
 
-function Home() {
+function Home({ openSheet }) {
   const [bannerData, getBannerData] = useState([]);
   const [dataBanner2, setDataBanner2] = useState([]);
   const [roundBatch, getroundBatch] = useState([]);
@@ -64,8 +64,8 @@ function Home() {
   const getBanner = async (initialLoad = false) => {
     try {
       if (!initialLoad) {
-      setLoading(true);
-    }
+        setLoading(true);
+      }
       setError(null);
 
       const response = await axios.get(import.meta.env.VITE_API_GETBANNER);
@@ -121,9 +121,9 @@ function Home() {
     <>
       <Products />
 
-      <div className=" mx-2.5 md:mx-12.5  text-4xl ">
+      <div className=" mx-2.5 md:mx-12.5  text-4xl relative">
         {/* hero banner */}
-        <div className="">
+        <div className="my-3">
           <Swiper
             spaceBetween={10}
             modules={[Navigation, Autoplay, Pagination]}
@@ -147,7 +147,6 @@ function Home() {
             })}
           </Swiper>
         </div>
-        <br />
         {/* hero batch */}
         <div className="container">
           <div>
@@ -156,7 +155,7 @@ function Home() {
               spaceBetween={10}
               modules={[Navigation, Autoplay, Pagination]}
               autoplay={{ delay: 2000 }}
-              // pagination={{ clickable: true }}
+              pagination={{ clickable: true }}
               breakpoints={{
                 320: { slidesPerView: 3 },
                 768: { slidesPerView: 4 },
@@ -181,11 +180,11 @@ function Home() {
               ))}
             </Swiper>
           </div>
-          <br />
+         
         </div>
-        <h3>New Arrivals</h3>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <h3 className="home-sub-heading">New Arrivals</h3>
+        <br />
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 pb-10">
           {newarrivalData.map((value, index) => {
             // ================= FIND MATCHING HOVER IMAGE =================
             const hoverImage = hoverimg?.find((item) => {
@@ -212,9 +211,10 @@ function Home() {
             );
 
             return (
-              <div
-                key={value._id || index}
-                className="
+              <>
+                <div
+                  key={value._id || index}
+                  className="
           group
           bg-white
           rounded-2xl
@@ -225,10 +225,10 @@ function Home() {
           overflow-hidden
           hover:-translate-y-1
         "
-              >
-                {/* ================= IMAGE CONTAINER ================= */}
-                <div
-                  className="
+                >
+                  {/* ================= IMAGE CONTAINER ================= */}
+                  <div
+                    className="
             relative
             aspect-square
             overflow-hidden
@@ -237,13 +237,13 @@ function Home() {
             to-gray-100
             cursor-pointer
           "
-                  // onClick={() => navigate(`/shop/${value._id}`)}
-                >
-                  {/* ================= NORMAL IMAGE ================= */}
-                  <img
-                    src={value.url}
-                    alt={value.name}
-                    className={`
+                    // onClick={() => navigate(`/shop/${value._id}`)}
+                  >
+                    {/* ================= NORMAL IMAGE ================= */}
+                    <img
+                      src={value.url}
+                      alt={value.name}
+                      className={`
               absolute
               inset-0
               w-full
@@ -258,14 +258,14 @@ function Home() {
                   : "opacity-100"
               }
             `}
-                  />
+                    />
 
-                  {/* ================= HOVER IMAGE ================= */}
-                  {hoverImage?.url && (
-                    <img
-                      src={hoverImage.url}
-                      alt={`${value.name} hover`}
-                      className="
+                    {/* ================= HOVER IMAGE ================= */}
+                    {hoverImage?.url && (
+                      <img
+                        src={hoverImage.url}
+                        alt={`${value.name} hover`}
+                        className="
                 absolute
                 inset-0
                 w-full
@@ -277,12 +277,12 @@ function Home() {
                 duration-500
                 ease-in-out
               "
-                    />
-                  )}
+                      />
+                    )}
 
-                  {/* ================= LIKE BUTTON ================= */}
-                  <button
-                    className={`
+                    {/* ================= LIKE BUTTON ================= */}
+                    <button
+                      className={`
     absolute
     top-3
     right-3
@@ -295,23 +295,26 @@ function Home() {
     hover:scale-110
     ${isLiked ? "bg-red-500 text-white" : "bg-white/90 text-blue-600"}
   `}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addtoWishList(value);
-                    }}
-                  >
-                    <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
-                  </button>
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addtoWishList(value);
+                      }}
+                    >
+                      <Heart
+                        size={15}
+                        fill={isLiked ? "currentColor" : "none"}
+                      />
+                    </button>
 
-                  {/* ================= OFFER BADGE ================= */}
-                  {value.offer && (
-                    <div
-                      className={`
+                    {/* ================= OFFER BADGE ================= */}
+                    {value.offer && (
+                      <div
+                        className={`
                 absolute
                 top-3
                 left-3
                 z-30
-                text-xs
+                text-[10px]
                 font-bold
                 px-2
                 py-1.5
@@ -323,14 +326,14 @@ function Home() {
                     : "bg-yellow-400 text-gray-900"
                 }
               `}
-                    >
-                      {value.offer} OFF
-                    </div>
-                  )}
+                      >
+                        {value.offer} OFF
+                      </div>
+                    )}
 
-                  {/* ================= QUICK VIEW ================= */}
-                  <div
-                    className="
+                    {/* ================= QUICK VIEW ================= */}
+                    <div
+                      className="
               absolute
               inset-0
               z-20
@@ -345,13 +348,13 @@ function Home() {
               pointer-events-none
               group-hover:pointer-events-auto
             "
-                  >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/product/${value._id}`);
-                      }}
-                      className="
+                    >
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/product/${value._id}`);
+                        }}
+                        className="
                 bg-white
                 text-gray-800
                 px-5
@@ -365,37 +368,37 @@ function Home() {
                 duration-300
                 text-xs
               "
-                    >
-                      Quick View
-                    </button>
+                      >
+                        Quick View
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* ================= PRODUCT INFO ================= */}
-                <div className="p-4">
-                  {/* PRODUCT NAME */}
-                  <h3 className="font-semibold text-gray-800 text-sm line-clamp-1">
-                    {value.name}
-                  </h3>
+                  {/* ================= PRODUCT INFO ================= */}
+                  <div className="p-4">
+                    {/* PRODUCT NAME */}
+                    <h3 className="font-semibold text-gray-800 text-sm line-clamp-1">
+                      {value.name}
+                    </h3>
 
-                  {/* PRICE */}
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    {/* CURRENT PRICE */}
-                    <span className="text-lg font-bold text-gray-900">
-                      ₹{value.price?.toLocaleString("en-IN")}
-                    </span>
-
-                    {/* ORIGINAL PRICE */}
-                    {value.dashprice && (
-                      <span className="text-sm text-gray-400 line-through">
-                        ₹{value.dashprice?.toLocaleString("en-IN")}
+                    {/* PRICE */}
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      {/* CURRENT PRICE */}
+                      <span className="text-lg font-bold text-gray-900">
+                        ₹{value.price?.toLocaleString("en-IN")}
                       </span>
-                    )}
 
-                    {/* OFFER */}
-                    {value.offer && (
-                      <span
-                        className={`
+                      {/* ORIGINAL PRICE */}
+                      {value.dashprice && (
+                        <span className="text-sm text-gray-400 line-through">
+                          ₹{value.dashprice?.toLocaleString("en-IN")}
+                        </span>
+                      )}
+
+                      {/* OFFER */}
+                      {value.offer && (
+                        <span
+                          className={`
                   text-xs
                   font-bold
                   px-2
@@ -407,14 +410,14 @@ function Home() {
                       : "text-green-700 bg-green-100"
                   }
                 `}
-                      >
-                        {value.offer} OFF
-                      </span>
-                    )}
-                    {/* cart button */}
-                    <button
-                      onClick={() => handleAddToCart(value)}
-                      className="
+                        >
+                          {value.offer} OFF
+                        </span>
+                      )}
+                      {/* cart button */}
+                      <button
+                        onClick={() => handleAddToCart(value)}
+                        className="
     flex
     items-center
     justify-center
@@ -422,7 +425,7 @@ function Home() {
     px-3
     py-2
     rounded-lg
-    bg-blue-600
+    bg-[var(--hover-button)]
     text-white
     text-sm
     font-medium
@@ -431,19 +434,24 @@ function Home() {
     transition-all
     duration-200
   "
-                    >
-                      <ShoppingCart size={18} />
-                      <span>Add to Cart</span>
-                    </button>
+                      >
+                        <ShoppingCart size={18} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </>
             );
           })}
         </div>
+        <div className="w-full sm:hidden absolute bottom-0 h-[150px] bg-gradient-to-b from-white/70  to-white"></div>
       </div>
 
-      <br />
+      <center className="lg:mt-10">
+        <button className="explore-button" onClick={openSheet}>
+          Explore
+        </button>
+      </center>
       <br />
       <br />
 
@@ -479,12 +487,11 @@ function Home() {
 
       <br />
       <br />
-      <br />
 
       {/* budget cards start */}
 
       <div className="mx-5 md:mx-12.5">
-        <h3>Budget Sport Shopping</h3>
+        <h3 className="home-sub-heading">Budget Sport Shopping</h3>
         <br />
         <div style={{ overflow: "hidden", width: "100%" }}>
           <Swiper
@@ -514,6 +521,8 @@ function Home() {
                       }}
                       onClick={() => navigate(`/product/${value._id}`)}
                     />
+                     <br />
+                      <br />
                   </center>
                 </div>
               </SwiperSlide>
@@ -523,8 +532,6 @@ function Home() {
         <br />
       </div>
 
-      <br />
-      <br />
       <br />
       {/* budget cards end */}
 
@@ -554,13 +561,13 @@ function Home() {
           })}
         </Swiper>
       </div>
-
+          <br />
       {/* banner 2 end */}
 
       {/* Steel Deal start */}
 
       <div className="mx-12.5">
-        <h3>Steal Deals: Too Good to Miss!</h3>
+        <h3 className="home-sub-heading" style={{marginLeft:"-30px"}}>Steal Deals: Too Good to Miss!</h3>
         <br />
         <div style={{ overflow: "hidden", width: "100%" }}>
           <Swiper

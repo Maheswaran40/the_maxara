@@ -32,7 +32,7 @@ function Products() {
 
   return (
     <div>
-      <div className="md:grid-cols-6 gap-6 pt-4  mb-0">
+      <div className="md:grid-cols-6 gap-6 pt-4 mx-10 mb-0">
         <Swiper
           id="brandswpier"
           spaceBetween={10}
@@ -53,12 +53,11 @@ function Products() {
                   <img
                     src={value.img}
                     alt={value.name}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer"}}
                     onClick={() => handleCategoryClick(value.id)}
                   />
                   <br />
-                  <p>{value.name}</p>
-                  <br />
+                  <p className="text-[15px]">{value.name}</p>
                   <br />
                 </center>
               </div>

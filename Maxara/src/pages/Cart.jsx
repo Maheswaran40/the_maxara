@@ -119,7 +119,7 @@ const Cart = () => {
                     <div className="flex flex-col sm:flex-row gap-5">
                       {/* PRODUCT IMAGE */}
 
-                      <div className="w-full sm:w-40 h-48 sm:h-40 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                      <div className="w-full sm:w-40 h-68 sm:h-40 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
                         <img
                           src={item.product?.url}
                           alt={item.product?.name}
