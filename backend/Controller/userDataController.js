@@ -1,449 +1,606 @@
 const DataModal = require("../Model/userRegister");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer")
-const crypto = require("crypto")
+const nodemailer = require("nodemailer");
+const crypto = require("node:crypto");
+const dns = require("node:dns");
 
+// Prefer IPv4 when connecting to SMTP services.
+// This may help with Render IPv6 SMTP connection errors.
+try {
+    dns.setDefaultResultOrder("ipv4first");
+} catch (error) {
+    console.error("DNS configuration warning:", error.message);
+}
+
+
+// EMAIL CONFIGURATION
 
 
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
+        pass: process.env.EMAIL_PASS,
+    },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
 });
-// REGISTER
+
+
+// COMMON HELPERS
+
+
+const normalizeEmail = (email) => {
+    return typeof email === "string" ? email.trim().toLowerCase() : "";
+};
+
+const generateOtp = () => {
+    return crypto.randomInt(1000, 10000).toString();
+};
+
+const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
+const isProduction = process.env.NODE_ENV === "production";
+
+// Use the same cookie options for login and logout.
+const getCookieOptions = () => ({
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
+    maxAge: 24 * 60 * 60 * 1000,
+});
+
+const sendOtpEmail = async (email, otp, type = "verification") => {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        throw new Error("Email configuration is missing");
+    }
+
+    let subject;
+    let message;
+
+    if (type === "reset") {
+        subject = "Maxara Password Reset OTP";
+        message = `Your Maxara password reset OTP is ${otp}. It expires in 5 minutes.`;
+    } else {
+        subject = "Maxara Email Verification OTP";
+        message = `Your Maxara email verification OTP is ${otp}. It expires in 5 minutes.`;
+    }
+
+    await transporter.sendMail({
+        from: `"Maxara" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject,
+        text: message,
+    });
+};
+
+
+// REGISTER / RESEND VERIFICATION OTP
+// POST /api/...
+
+
 const addData = async (req, res) => {
     try {
-        const { userName, userEmail, userPass } = req.body;
+        const userName =
+            typeof req.body.userName === "string"
+                ? req.body.userName.trim()
+                : "";
 
-        const existing = await DataModal.findOne({ userEmail });
+        const userEmail = normalizeEmail(req.body.userEmail);
+        const userPass = req.body.userPass;
 
-        if (existing) {
+        if (!userName || !userEmail || !userPass) {
             return res.status(400).json({
-                error: "Email already exists, please login"
+                success: false,
+                error: "Name, email and password are required",
             });
         }
 
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(userPass, saltRounds);
-        const otp = Math.floor(1000 + Math.random() * 9000)
-        const user_data = new DataModal({
-            userName,
+        if (!isValidEmail(userEmail)) {
+            return res.status(400).json({
+                success: false,
+                error: "Please enter a valid email address",
+            });
+        }
+
+        if (userPass.length < 6) {
+            return res.status(400).json({
+                success: false,
+                error: "Password must be at least 6 characters",
+            });
+        }
+
+        // Look for an account with this email.
+        let user = await DataModal.findOne({ userEmail });
+
+        if (user && user.isVerified) {
+            return res.status(409).json({
+                success: false,
+                error: "Email already exists. Please login.",
+            });
+        }
+
+        // Hash the password before saving.
+        const hashedPassword = await bcrypt.hash(userPass, 10);
+
+        // Generate an OTP valid for 5 minutes.
+        const otp = generateOtp();
+        const otpExpire = new Date(Date.now() + 5 * 60 * 1000);
+
+        if (user && !user.isVerified) {
+            // Allow an unverified user to try registration again.
+            // Update the existing record instead of creating a duplicate.
+            user.userName = userName;
+            user.userPassword = hashedPassword;
+            user.otp = otp;
+            user.otpExpire = otpExpire;
+        } else {
+            user = new DataModal({
+                userName,
+                userEmail,
+                userPassword: hashedPassword,
+                otp,
+                otpExpire,
+                isVerified: false,
+            });
+        }
+
+        // Save the account and its OTP.
+        await user.save();
+
+        // If email sending fails, the account remains unverified.
+        // The user can submit registration again to receive a new OTP.
+        try {
+            await sendOtpEmail(userEmail, otp, "verification");
+        } catch (emailError) {
+            console.error("Verification email failed:", emailError.message);
+
+            return res.status(503).json({
+                success: false,
+                error:
+                    "Your account is saved but the verification email could not be sent. Please try registering again to receive a new OTP.",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Registration successful. OTP sent to your email.",
             userEmail,
-            userPassword: hashedPassword,
-            otp: otp,
-            otpExpire: Date.now() + 300000, // 5 minutes
-            isVerified: false
         });
+    } catch (error) {
+        console.error("Registration error:", error.message);
 
-        await user_data.save();
-
-        // send email
-
-
-        await transporter.sendMail({
-            from: userName,
-            to: userEmail,
-            subject: "Email Verification OTP",
-            text: `Your OTP is ${otp}`
-        })
-
-        res.status(200).json({ message: "Data added Successfully" });
-
-    } catch (err) {
-        console.log("POST Error:", err.message);
-        res.status(500).json({ error: "Server error" });
+        return res.status(500).json({
+            success: false,
+            error: "Registration failed. Please try again.",
+        });
     }
 };
 
-// verify email
-const verifyOtp = async (req, res) => {
 
+// VERIFY REGISTRATION OTP
+
+
+const verifyOtp = async (req, res) => {
     try {
-        const { userEmail, otp } = req.body;
+        const userEmail = normalizeEmail(req.body.userEmail);
+        const otp = String(req.body.otp || "").trim();
+
+        if (!userEmail || !otp) {
+            return res.status(400).json({
+                success: false,
+                error: "Email and OTP are required",
+            });
+        }
 
         const user = await DataModal.findOne({ userEmail });
 
         if (!user) {
-            return res.json({ message: "User not found" });
+            return res.status(404).json({
+                success: false,
+                error: "User not found. Please register first.",
+            });
         }
 
-        if (user.otpExpire < Date.now()) {
-            return res.json({ message: "OTP expired" });
+        if (user.isVerified) {
+            return res.status(200).json({
+                success: true,
+                message: "Email is already verified",
+            });
         }
 
-        if (user.otp != otp) {
-            return res.json({ message: "Invalid OTP" });
+        if (!user.otp || !user.otpExpire) {
+            return res.status(400).json({
+                success: false,
+                error: "OTP not found. Please register again to get a new OTP.",
+            });
+        }
+
+        if (new Date(user.otpExpire).getTime() < Date.now()) {
+            return res.status(400).json({
+                success: false,
+                error: "OTP expired. Please register again to get a new OTP.",
+            });
+        }
+
+        if (String(user.otp) !== otp) {
+            return res.status(400).json({
+                success: false,
+                error: "Invalid OTP",
+            });
         }
 
         user.isVerified = true;
         user.otp = null;
         user.otpExpire = null;
+
         await user.save();
 
-        res.json({
-            message: "Email verified successfully"
+        return res.status(200).json({
+            success: true,
+            message: "Email verified successfully. You can now login.",
+        });
+    } catch (error) {
+        console.error("Verify OTP error:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            error: "Email verification failed. Please try again.",
         });
     }
-    catch (error) {
-        console.log(
-            "VERIFY OTP Error:",
-            error.message
-        );
-
-        res.status(500).json({
-            error: "Server error"
-        });
-    }
-
 };
+
 
 // GET ALL USERS
+// IMPORTANT: Protect this route with admin authentication.
+
+
 const getData = async (req, res) => {
     try {
-        const get_Data = await DataModal.find();
-        res.status(200).json(get_Data);
+        const users = await DataModal.find().select(
+            "-userPassword -otp -otpExpire -resetPasswordOTP -resetPasswordOTPExpire"
+        );
 
-    } catch (err) {
-        console.log("GET Error:", err.message);
-        res.status(500).json({ error: "Server error" });
+        return res.status(200).json(users);
+    } catch (error) {
+        console.error("Get users error:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            error: "Unable to fetch users",
+        });
     }
 };
+
 
 // LOGIN
 
+
 const loginUser = async (req, res) => {
     try {
-        const { userEmail, userPassword } = req.body;
+        const userEmail = normalizeEmail(req.body.userEmail);
+        const userPassword = req.body.userPassword;
 
-        // 1. Find user
+        if (!userEmail || !userPassword) {
+            return res.status(400).json({
+                success: false,
+                error: "Email and password are required",
+            });
+        }
+
         const user = await DataModal.findOne({ userEmail });
 
         if (!user) {
-            return res.status(400).json({
-                error: "User not found"
+            return res.status(401).json({
+                success: false,
+                error: "Invalid email or password",
             });
         }
 
-        // 2. Check email verification
         if (!user.isVerified) {
             return res.status(403).json({
-                error: "Please verify your email before login"
+                success: false,
+                error: "Please verify your email before logging in",
             });
         }
 
-        // 3. Check password
-        const isMatch = await bcrypt.compare(
+        const passwordMatches = await bcrypt.compare(
             userPassword,
             user.userPassword
         );
 
-        if (!isMatch) {
-            return res.status(400).json({
-                error: "Invalid password"
+        if (!passwordMatches) {
+            return res.status(401).json({
+                success: false,
+                error: "Invalid email or password",
             });
         }
 
-        // 4. Create JWT
+        if (!process.env.JWT_SECRET) {
+            console.error("JWT_SECRET is not configured");
+
+            return res.status(500).json({
+                success: false,
+                error: "Server authentication configuration error",
+            });
+        }
+
         const token = jwt.sign(
             { id: user._id },
             process.env.JWT_SECRET,
             { expiresIn: "1d" }
         );
 
-        console.log("JWT", token);
+        // Store the JWT in an HTTP-only cookie.
+        res.cookie("token", token, getCookieOptions());
 
-        // 5. Store JWT in httpOnly cookie
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: false, // true in production with HTTPS
-            sameSite: "lax",
-            maxAge: 30 * 24 * 60 * 60 * 1000
-        });
-
-        // 6. Send response
-        res.status(200).json({
+        return res.status(200).json({
+            success: true,
             message: "Login successful",
             user: {
                 id: user._id,
                 name: user.userName,
-                email: user.userEmail
-            }
+                email: user.userEmail,
+            },
         });
+    } catch (error) {
+        console.error("Login error:", error.message);
 
-        console.log("Login successfully");
-
-    } catch (err) {
-        console.log("LOGIN Error:", err.message);
-
-        res.status(500).json({
-            error: "Server error"
+        return res.status(500).json({
+            success: false,
+            error: "Login failed. Please try again.",
         });
     }
 };
 
 
+// FORGOT PASSWORD
 
-// forgot password
 
- const forgotPassword = async (req, res) => {
-  try {
-    const { userEmail } = req.body;
+const forgotPassword = async (req, res) => {
+    try {
+        const userEmail = normalizeEmail(req.body.userEmail);
 
-    console.log("========== FORGOT PASSWORD ==========");
-    console.log("EMAIL RECEIVED:", userEmail);
+        if (!userEmail || !isValidEmail(userEmail)) {
+            return res.status(400).json({
+                success: false,
+                error: "Please provide a valid email address",
+            });
+        }
 
-    const user = await DataModal.findOne({ userEmail });
+        const user = await DataModal.findOne({ userEmail });
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: "User not found",
-      });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: "No account found with this email address",
+            });
+        }
+
+        if (!user.isVerified) {
+            return res.status(403).json({
+                success: false,
+                error: "Please verify your email before resetting your password",
+            });
+        }
+
+        const otp = generateOtp();
+        const otpExpire = new Date(Date.now() + 5 * 60 * 1000);
+
+        user.resetPasswordOTP = otp;
+        user.resetPasswordOTPExpire = otpExpire;
+
+        await user.save();
+
+        try {
+            await sendOtpEmail(userEmail, otp, "reset");
+        } catch (emailError) {
+            console.error("Password reset email failed:", emailError.message);
+
+            // Clear the unusable OTP if the email could not be sent.
+            user.resetPasswordOTP = null;
+            user.resetPasswordOTPExpire = null;
+            await user.save();
+
+            return res.status(503).json({
+                success: false,
+                error: "Unable to send the password reset email. Please try again later.",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset OTP sent successfully",
+        });
+    } catch (error) {
+        console.error("Forgot password error:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            error: "Unable to process password reset",
+        });
     }
-
-    // Generate 4 digit OTP
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
-
-    // OTP expires after 5 minutes
-    const otpExpire = new Date(Date.now() + 5 * 60 * 1000);
-
-    console.log("GENERATED OTP:", otp);
-    console.log("GENERATED EXPIRY:", otpExpire);
-
-    // Save reset OTP
-    user.resetPasswordOTP = otp;
-    user.resetPasswordOTPExpire = otpExpire;
-
-    await user.save();
-
-    // Check what was actually saved
-    console.log("OTP SAVED IN DB:", user.resetPasswordOTP);
-    console.log("EXPIRY SAVED IN DB:", user.resetPasswordOTPExpire);
-
-    // Send email
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: userEmail,
-      subject: "Maxara Password Reset OTP",
-      text: `Your password reset OTP is ${otp}. This OTP will expire in 5 minutes.`,
-    });
-
-    console.log("OTP EMAIL SENT");
-    console.log("====================================");
-
-    return res.status(200).json({
-      success: true,
-      message: "OTP sent successfully",
-    });
-
-  } catch (error) {
-    console.error("FORGOT PASSWORD ERROR:", error);
-
-    return res.status(500).json({
-      success: false,
-      error: "Server error",
-    });
-  }
 };
 
-// =====================================================
-// VERIFY FORGOT PASSWORD OTP
-// =====================================================
+
+// VERIFY PASSWORD RESET OTP
+
 
 const verifyResetOtp = async (req, res) => {
-  try {
-    const { userEmail, otp } = req.body;
+    try {
+        const userEmail = normalizeEmail(req.body.userEmail);
+        const otp = String(req.body.otp || "").trim();
 
-    console.log("========== VERIFY RESET OTP ==========");
-    console.log("EMAIL:", userEmail);
-    console.log("OTP FROM FRONTEND:", otp);
+        if (!userEmail || !otp) {
+            return res.status(400).json({
+                success: false,
+                error: "Email and OTP are required",
+            });
+        }
 
-    const user = await DataModal.findOne({ userEmail });
+        const user = await DataModal.findOne({ userEmail });
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: "User not found",
-      });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: "User not found",
+            });
+        }
+
+        if (!user.resetPasswordOTP || !user.resetPasswordOTPExpire) {
+            return res.status(400).json({
+                success: false,
+                error: "Reset OTP not found. Please request a new OTP.",
+            });
+        }
+
+        if (
+            new Date(user.resetPasswordOTPExpire).getTime() < Date.now()
+        ) {
+            return res.status(400).json({
+                success: false,
+                error: "OTP expired. Please request a new OTP.",
+            });
+        }
+
+        if (String(user.resetPasswordOTP) !== otp) {
+            return res.status(400).json({
+                success: false,
+                error: "Invalid OTP",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP verified successfully",
+        });
+    } catch (error) {
+        console.error("Verify reset OTP error:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            error: "Unable to verify OTP",
+        });
     }
-
-    console.log("OTP FROM DB:", user.resetPasswordOTP);
-    console.log("OTP EXPIRY FROM DB:", user.resetPasswordOTPExpire);
-
-    if (!user.resetPasswordOTP || !user.resetPasswordOTPExpire) {
-      return res.status(400).json({
-        success: false,
-        error: "OTP not found",
-      });
-    }
-
-    if (user.resetPasswordOTPExpire < new Date()) {
-      return res.status(400).json({
-        success: false,
-        error: "OTP expired",
-      });
-    }
-
-    if (user.resetPasswordOTP !== otp.toString()) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid OTP",
-      });
-    }
-
-    console.log("OTP VERIFIED SUCCESSFULLY");
-    console.log("====================================");
-
-    return res.status(200).json({
-      success: true,
-      message: "OTP verified successfully",
-    });
-
-  } catch (error) {
-    console.error("VERIFY RESET OTP ERROR:", error);
-
-    return res.status(500).json({
-      success: false,
-      error: "Server error",
-    });
-  }
 };
 
 
-// =====================================================
 // RESET PASSWORD
-// =====================================================
+
 
 const resetPassword = async (req, res) => {
-  try {
-    const { userEmail, otp, newPassword } = req.body;
+    try {
+        const userEmail = normalizeEmail(req.body.userEmail);
+        const otp = String(req.body.otp || "").trim();
+        const newPassword = req.body.newPassword;
 
-    console.log("RESET PASSWORD BODY:", {
-      userEmail,
-      otp,
-      hasPassword: !!newPassword,
-    });
+        if (!userEmail || !otp || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                error: "Email, OTP and new password are required",
+            });
+        }
 
-    const user = await DataModal.findOne({ userEmail });
+        if (typeof newPassword !== "string" || newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                error: "Password must be at least 6 characters",
+            });
+        }
 
-    console.log("USER FOUND:", !!user);
+        const user = await DataModal.findOne({ userEmail });
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: "User not found",
-      });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: "User not found",
+            });
+        }
+
+        if (!user.resetPasswordOTP || !user.resetPasswordOTPExpire) {
+            return res.status(400).json({
+                success: false,
+                error: "Reset OTP not found. Please request a new OTP.",
+            });
+        }
+
+        if (
+            new Date(user.resetPasswordOTPExpire).getTime() < Date.now()
+        ) {
+            return res.status(400).json({
+                success: false,
+                error: "OTP expired. Please request a new OTP.",
+            });
+        }
+
+        if (String(user.resetPasswordOTP) !== otp) {
+            return res.status(400).json({
+                success: false,
+                error: "Invalid OTP",
+            });
+        }
+
+        user.userPassword = await bcrypt.hash(newPassword, 10);
+        user.resetPasswordOTP = null;
+        user.resetPasswordOTPExpire = null;
+
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset successfully. Please login with your new password.",
+        });
+    } catch (error) {
+        console.error("Reset password error:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            error: "Unable to reset password",
+        });
     }
-
-    console.log("RESET OTP FROM DB:", user.resetPasswordOTP);
-    console.log("RESET OTP EXPIRY FROM DB:", user.resetPasswordOTPExpire);
-    console.log("RESET OTP FROM FRONTEND:", otp);
-    console.log(
-      "OTP MATCH:",
-      user.resetPasswordOTP === otp.toString()
-    );
-
-    if (!user.resetPasswordOTP || !user.resetPasswordOTPExpire) {
-      return res.status(400).json({
-        success: false,
-        error: "OTP not found",
-      });
-    }
-
-    if (user.resetPasswordOTPExpire < Date.now()) {
-      return res.status(400).json({
-        success: false,
-        error: "OTP expired",
-      });
-    }
-
-    if (user.resetPasswordOTP !== otp.toString()) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid OTP",
-      });
-    }
-
-    if (newPassword.length < 6) {
-      return res.status(400).json({
-        success: false,
-        error: "Password must be at least 6 characters",
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    user.userPassword = hashedPassword;
-    user.resetPasswordOTP = null;
-    user.resetPasswordOTPExpire = null;
-
-    await user.save();
-
-    console.log("PASSWORD RESET SUCCESS");
-
-    return res.status(200).json({
-      success: true,
-      message: "Password reset successfully",
-    });
-
-  } catch (error) {
-    console.error("RESET PASSWORD ERROR:", error);
-
-    return res.status(500).json({
-      success: false,
-      error: "Server error",
-    });
-  }
 };
 
 
-// =====================================================
 // LOGOUT
-// =====================================================
+
 
 const logoutUser = async (req, res) => {
-
     try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
+            path: "/",
+        });
 
-        res.clearCookie(
-            "token",
-            {
-                httpOnly: true,
-
-                secure: false,
-
-                sameSite: "lax"
-            }
-        );
-
-
-        res.status(200).json({
-
+        return res.status(200).json({
             success: true,
-
-            message:
-                "Logout successful"
-
+            message: "Logout successful",
         });
-
     } catch (error) {
+        console.error("Logout error:", error.message);
 
-        res.status(500).json({
-            error: "Logout failed"
+        return res.status(500).json({
+            success: false,
+            error: "Logout failed",
         });
-
     }
 };
 
-module.exports = { addData, getData, loginUser, verifyOtp, forgotPassword, verifyResetOtp, resetPassword, logoutUser };
+// EXPORT CONTROLLERS
+
+module.exports = {
+    addData,
+    getData,
+    loginUser,
+    verifyOtp,
+    forgotPassword,
+    verifyResetOtp,
+    resetPassword,
+    logoutUser,
+};

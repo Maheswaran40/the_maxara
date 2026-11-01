@@ -1,13 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const AUTH_API = "http://localhost:5000/auth";
+const AUTH_API = import.meta.env.VITE_LOGIN_API;
 
 
 // ===============================
 // CHECK AUTH
 // ===============================
-
+  
 export const checkAuth = createAsyncThunk(
   "auth/checkAuth",
 
