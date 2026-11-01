@@ -145,7 +145,7 @@ function OTP() {
         ) {
           alert("Email verified successfully!");
 
-          navigate("/login");
+          navigate("/");
         } else {
           alert(
             response.data.message ||
