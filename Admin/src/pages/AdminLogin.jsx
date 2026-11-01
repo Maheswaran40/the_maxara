@@ -1,97 +1,60 @@
-import {
-  useState,
-} from "react";
 
-import {
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-
-import {
-  ShieldCheck,
-  Eye,
-  EyeOff,
-} from "lucide-react";
-
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ShieldCheck, Eye, EyeOff } from "lucide-react";
+import adminApi from "../api/adminApi";
 
 function AdminLogin() {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const navigate =
-    useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const location =
-    useLocation();
-
-
-  const [email, setEmail] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  const [showPassword, setShowPassword] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
-
-  function handleLogin(e) {
-
+  async function handleLogin(e) {
     e.preventDefault();
 
     setError("");
+    setLoading(true);
 
+    try {
+      const response = await adminApi.post("/login", {
+        email: email.trim(),
+        password,
+      });
 
-    /*
-      TEMPORARY ADMIN LOGIN
+      if (response.data.success) {
+        // The JWT is stored in an HTTP-only cookie.
+        // Do not store an admin flag or token in localStorage.
 
-      Replace this later with:
-      POST /api/admin/login
-    */
+        const from = location.state?.from || "/dashboard";
 
-    const adminEmail =
-      "admin@maxara.com";
-
-    const adminPassword =
-      "admin123";
-
-
-    if (
-      email === adminEmail &&
-      password === adminPassword
-    ) {
-
-      localStorage.setItem(
-        "maxaraAdmin",
-        "true"
-      );
-
-
-      const from =
-        location.state?.from ||
-        "/dashboard";
-
-
-      navigate(
-        from,
-        { replace: true }
-      );
-
-
-    } else {
-
-      setError(
-        "Invalid admin email or password"
-      );
-
+        navigate(from, { replace: true });
+      } else {
+        setError(response.data.message || "Login failed");
+      }
+    } catch (err) {
+      if (err.response) {
+        setError(
+          err.response.data?.message ||
+            "Unable to log in. Please try again."
+        );
+      } else if (err.request) {
+        setError(
+          "Cannot connect to the server. Check whether the backend is running."
+        );
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
-
   }
 
-
   return (
-
     <div
       className="
         flex min-h-screen
@@ -100,7 +63,6 @@ function AdminLogin() {
         px-4
       "
     >
-
       <div
         className="
           w-full max-w-md
@@ -110,11 +72,9 @@ function AdminLogin() {
           shadow-xl
         "
       >
-
         {/* LOGO */}
 
         <div className="mb-8 text-center">
-
           <div
             className="
               mx-auto mb-4
@@ -125,11 +85,8 @@ function AdminLogin() {
               text-white
             "
           >
-
             <ShieldCheck size={32} />
-
           </div>
-
 
           <h1 className="text-2xl font-bold">
             MAXARA
@@ -138,19 +95,15 @@ function AdminLogin() {
           <p className="mt-1 text-sm text-slate-500">
             Admin Panel
           </p>
-
         </div>
-
 
         <form
           onSubmit={handleLogin}
           className="space-y-5"
         >
-
           {/* EMAIL */}
 
           <div>
-
             <label className="mb-2 block text-sm font-medium">
               Admin Email
             </label>
@@ -158,62 +111,53 @@ function AdminLogin() {
             <input
               type="email"
               value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
-              }
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@maxara.com"
+              autoComplete="username"
               required
+              disabled={loading}
               className="
                 w-full rounded-lg
                 border border-slate-300
                 px-4 py-3
                 outline-none
                 focus:border-blue-500
+                disabled:opacity-60
               "
             />
-
           </div>
-
 
           {/* PASSWORD */}
 
           <div>
-
             <label className="mb-2 block text-sm font-medium">
               Password
             </label>
 
-
             <div className="relative">
-
               <input
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
+                type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
+                autoComplete="current-password"
                 required
+                disabled={loading}
                 className="
                   w-full rounded-lg
                   border border-slate-300
                   px-4 py-3 pr-12
                   outline-none
                   focus:border-blue-500
+                  disabled:opacity-60
                 "
               />
 
-
               <button
                 type="button"
-                onClick={() =>
-                  setShowPassword(
-                    !showPassword
-                  )
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={
+                  showPassword ? "Hide password" : "Show password"
                 }
                 className="
                   absolute right-3
@@ -222,24 +166,20 @@ function AdminLogin() {
                   text-slate-500
                 "
               >
-
-                {showPassword
-                  ? <EyeOff size={19} />
-                  : <Eye size={19} />
-                }
-
+                {showPassword ? (
+                  <EyeOff size={19} />
+                ) : (
+                  <Eye size={19} />
+                )}
               </button>
-
             </div>
-
           </div>
-
 
           {/* ERROR */}
 
           {error && (
-
             <div
+              role="alert"
               className="
                 rounded-lg
                 bg-red-50
@@ -248,18 +188,15 @@ function AdminLogin() {
                 text-red-600
               "
             >
-
               {error}
-
             </div>
-
           )}
-
 
           {/* LOGIN */}
 
           <button
             type="submit"
+            disabled={loading}
             className="
               w-full
               rounded-lg
@@ -269,48 +206,16 @@ function AdminLogin() {
               text-white
               transition
               hover:bg-blue-700
+              disabled:cursor-not-allowed
+              disabled:opacity-60
             "
           >
-
-            Login to Admin Panel
-
+            {loading ? "Signing in..." : "Login to Admin Panel"}
           </button>
-
         </form>
-
-
-        {/* TEMP LOGIN INFO */}
-
-        <div
-          className="
-            mt-6 rounded-lg
-            bg-slate-50
-            p-4
-            text-xs text-slate-500
-          "
-        >
-
-          <p className="font-semibold">
-            Development Login
-          </p>
-
-          <p className="mt-1">
-            Email: admin@maxara.com
-          </p>
-
-          <p>
-            Password: admin123
-          </p>
-
-        </div>
-
       </div>
-
     </div>
-
   );
-
 }
-
 
 export default AdminLogin;

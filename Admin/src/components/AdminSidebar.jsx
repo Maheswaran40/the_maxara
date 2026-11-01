@@ -12,6 +12,7 @@ import {
   NavLink,
   useNavigate,
 } from "react-router-dom";
+import adminApi from "../api/adminApi";
 
 
 function AdminSidebar() {
@@ -61,15 +62,15 @@ function AdminSidebar() {
   ];
 
 
-  function logout() {
+async function logout() {
+  try {
+    await adminApi.post("/logout");
 
-    localStorage.removeItem(
-      "adminToken"
-    );
-
-    navigate("/login");
-
+    navigate("/", { replace: true });
+  } catch (error) {
+    console.error("Logout failed:", error);
   }
+}
 
 
   return (

@@ -40,7 +40,7 @@ function AdminRoutes() {
       ===================================== */}
 
       <Route
-        path="/login"
+        path="/"
         element={<AdminLogin />}
       />
 
