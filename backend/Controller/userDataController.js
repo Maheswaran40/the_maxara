@@ -23,8 +23,8 @@ const transporter = nodemailer.createTransport({
   secure: false,
   auth: {
     user: process.env.BREVO_SMTP_LOGIN,
-    pass: process.env.BREVO_SMTP_KEY
-  }
+    pass: process.env.BREVO_SMTP_KEY,
+  },
 });
 
 
@@ -55,11 +55,19 @@ const getCookieOptions = () => ({
 });
 
 const sendOtpEmail = async (email, otp, type = "verification") => {
-  if (
-    !process.env.BREVO_SMTP_LOGIN ||
-    !process.env.BREVO_SMTP_KEY ||
-    !process.env.BREVO_SENDER_EMAIL
-  ) {
+  const requiredEnv = [
+    "BREVO_SMTP_HOST",
+    "BREVO_SMTP_LOGIN",
+    "BREVO_SMTP_KEY",
+    "BREVO_SENDER_EMAIL",
+  ];
+
+  const missingEnv = requiredEnv.filter(
+    (key) => !process.env[key]?.trim()
+  );
+
+  if (missingEnv.length > 0) {
+    console.error("Missing Brevo environment variables:", missingEnv);
     throw new Error("Brevo SMTP configuration is missing");
   }
 
@@ -76,11 +84,11 @@ const sendOtpEmail = async (email, otp, type = "verification") => {
   return transporter.sendMail({
     from: {
       name: "Maxara",
-      address: process.env.BREVO_SENDER_EMAIL
+      address: process.env.BREVO_SENDER_EMAIL,
     },
     to: email,
     subject,
-    text: message
+    text: message,
   });
 };
 
