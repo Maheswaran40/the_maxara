@@ -11,11 +11,11 @@ import OTP from "./pages/OTP";
 import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
 import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/Resetpassword";
 import Mobile_nav from "./common_comp/Mobile_nav";
 import ScrollToTop from "./ScrollToTop";
 import { useState } from "react";
 import Error from "./pages/Error";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
