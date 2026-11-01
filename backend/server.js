@@ -16,13 +16,14 @@ server.use(cookieParser());
 
 const cors = require("cors");
 
+server.use(cors())
 
-server.use(
-    cors({
-        origin:[ "http://localhost:5173", "http://localhost:5174"],
-        credentials: true
-    })
-);
+// server.use(
+//     cors({
+//         origin:[ "http://localhost:5173", "http://localhost:5174"],
+//         credentials: true
+//     })
+// );
 server.use(express.json());   
 
 // admin routes
