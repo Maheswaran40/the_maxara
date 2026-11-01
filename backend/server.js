@@ -16,15 +16,23 @@ server.use(cookieParser());
 
 const cors = require("cors");
 
-server.use(cors())
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://the-maxara.vercel.app",
+];
 
-// server.use(
-//     cors({
-//         origin:[ "http://localhost:5173", "http://localhost:5174"],
-//         credentials: true
-//     })
-// );
-server.use(express.json());   
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+
+server.use(express.json());
 
 // admin routes
 const adminRoutes = require("./routes/adminRoutes");
@@ -32,19 +40,19 @@ server.use("/api/admin", adminRoutes);
 
 // user routes
 const userRouter = require("./routes/router");
-server.use("/api",userRouter);
+server.use("/api", userRouter);
 
 // product routes
-const productRouter=require("./routes/ProductRoutes");
-server.use("/api",productRouter)
+const productRouter = require("./routes/ProductRoutes");
+server.use("/api", productRouter)
 
 // cart routes
 const cartRouter = require("./routes/cartRoutes");
-server.use("/cart",cartRouter)
+server.use("/cart", cartRouter)
 
 // wishlist routes
 const wishlistRouter = require("./routes/wishRoute");
-server.use("/wishList",wishlistRouter)
+server.use("/wishList", wishlistRouter)
 
 // redis routes
 // const redisRoutes = require("./routes/redisRoutes");

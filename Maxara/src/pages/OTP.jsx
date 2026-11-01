@@ -17,8 +17,7 @@ function OTP() {
   const resetPassOtp = import.meta.env.VITE_RESET_PASS_OTP_API;
 
   // Get data from previous page
-  const userEmail =
-    location.state?.userEmail || location.state?.email;
+  const userEmail = location.state?.userEmail || location.state?.email;
 
   const purpose = location.state?.purpose || "signup";
 
@@ -43,11 +42,7 @@ function OTP() {
   }
 
   function handleKeyDown(e, index) {
-    if (
-      e.key === "Backspace" &&
-      !otp[index] &&
-      index > 0
-    ) {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   }
@@ -108,29 +103,21 @@ function OTP() {
       // SIGNUP OTP
       // =========================
       if (purpose === "signup") {
-        response = await axios.post(
-          verifyOtp,
-          {
-            userEmail: userEmail,
-            otp: otpValue,
-          }
-        );
+        response = await axios.post(verifyOtp, {
+          userEmail: userEmail,
+          otp: otpValue,
+        });
       }
 
       // =========================
       // FORGOT PASSWORD OTP
       // =========================
       else if (purpose === "forgot-password") {
-        response = await axios.post(
-          resetPassOtp,
-          {
-            userEmail: userEmail,
-            otp: otpValue,
-          }
-        );
+        response = await axios.post(resetPassOtp, {
+          userEmail: userEmail,
+          otp: otpValue,
+        });
         console.log("opt clicked");
-        
-
       }
 
       console.log("OTP Response:", response.data);
@@ -139,18 +126,12 @@ function OTP() {
       // SIGNUP SUCCESS
       // =========================
       if (purpose === "signup") {
-        if (
-          response.data.message ===
-          "Email verified successfully"
-        ) {
-          alert("Email verified successfully!");
+        if (response.status >= 200 && response.status < 300) {
+          alert(response.data.message || "Email verified successfully!");
 
-          navigate("/login");
+          navigate("/login", { replace: true });
         } else {
-          alert(
-            response.data.message ||
-              "OTP verification failed"
-          );
+          alert(response.data.message || "OTP verification failed");
         }
       }
 
@@ -168,23 +149,17 @@ function OTP() {
             },
           });
         } else {
-          alert(
-            response.data.message ||
-              "OTP verification failed"
-          );
+          alert(response.data.message || "OTP verification failed");
         }
       }
     } catch (error) {
-      console.error(
-        "OTP Verification Error:",
-        error
-      );
+      console.error("OTP Verification Error:", error);
 
       if (error.response) {
         alert(
           error.response.data.error ||
             error.response.data.message ||
-            "OTP verification failed"
+            "OTP verification failed",
         );
       } else {
         alert("Server error");
@@ -195,17 +170,13 @@ function OTP() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="w-[350px] rounded-xl border p-8 shadow-lg">
-        <h2 className="mb-2 text-center text-2xl font-bold">
-          Verify OTP
-        </h2>
+        <h2 className="mb-2 text-center text-2xl font-bold">Verify OTP</h2>
 
         <p className="mb-6 text-center text-gray-500">
           Enter the 4-digit OTP sent to your email
         </p>
 
-        <p className="mb-5 text-center text-sm">
-          {userEmail}
-        </p>
+        <p className="mb-5 text-center text-sm">{userEmail}</p>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-6 flex justify-center gap-3">
@@ -219,12 +190,8 @@ function OTP() {
                 inputMode="numeric"
                 maxLength="1"
                 value={digit}
-                onChange={(e) =>
-                  handleChange(e, index)
-                }
-                onKeyDown={(e) =>
-                  handleKeyDown(e, index)
-                }
+                onChange={(e) => handleChange(e, index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
                 onPaste={handlePaste}
                 className="h-14 w-12 rounded-lg border-2 text-center text-2xl font-bold outline-none focus:border-blue-500"
               />
