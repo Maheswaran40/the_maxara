@@ -7,7 +7,7 @@ dotenv.config();
 const connectDB = require("./config/db");
 connectDB();
 
-const { connectRedis } = require("./config/redis");
+// const { connectRedis } = require("./config/redis");
 
 
 const cookieParser = require("cookie-parser");
@@ -46,14 +46,14 @@ const wishlistRouter = require("./routes/wishRoute");
 server.use("/wishList",wishlistRouter)
 
 // redis routes
-const redisRoutes = require("./routes/redisRoutes");
-server.use("/api/redis", redisRoutes);
+// const redisRoutes = require("./routes/redisRoutes");
+// server.use("/api/redis", redisRoutes);
 
 // Start server after connecting databases
 const startServer = async () => {
     try {
         await connectDB();
-        await connectRedis();
+        // await connectRedis();
 
         server.listen(process.env.PORT || 5000, () => {
             console.log(
