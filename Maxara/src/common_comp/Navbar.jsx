@@ -47,7 +47,7 @@ function Navbar({ sheetOpen, setSheetOpen }) {
         },
       );
 
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }
