@@ -24,6 +24,7 @@ const addCart=async (req,res)=>{
       product: productId,
       quantity: quantity || 1,
     });
+    console.log("cart",cart)
 
     res.status(201).json({
       success: true,

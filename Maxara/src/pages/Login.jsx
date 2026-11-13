@@ -260,7 +260,7 @@ function Login() {
 
                 {/* FORGOT PASSWORD */}
 
-                {wrongPassword && (
+                {!wrongPassword && (
 
                   <div className="forgot-password-container">
                     <button
@@ -278,6 +278,9 @@ function Login() {
                   </div>
 
                 )}
+
+
+                {/* <button className="text-blue-500 mb-2 ms-1" onClick={()=>navigate("/forgot-password")}>Forget Password</button> */}
 
 
                 {/* LOGIN BUTTON */}

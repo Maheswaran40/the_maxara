@@ -47,10 +47,10 @@ function AppContent() {
         <Route path="/reset-password" element={<ResetPassword />} />
         {/* Home renders Products component */}
         <Route path="/product/:productId" element={<ProductPage />} />
-        <Route path="/category/:folder" element={<CategoryProduct />} />{" "}
+        <Route path="/category/:folder" element={<CategoryProduct />} />
         {/* Category page */}
         <Route path="/search" element={<CategoryProduct />} />
-        <Route path="/:folder" element={<Products />} />{" "}
+        <Route path="/:folder" element={<Products />} />
         {/* Dynamic folder route */}
         <Route path="/cart" element={<Cart />} />
         <Route path="/like" element={<Wishlist />} />

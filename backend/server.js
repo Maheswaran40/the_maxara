@@ -22,7 +22,7 @@ const allowedOrigins = [
   "https://the-maxara.vercel.app",
 ];
 
-app.use(
+server.use(
   cors({
     origin: allowedOrigins,
     credentials: true,

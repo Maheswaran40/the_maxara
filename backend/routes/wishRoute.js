@@ -1,11 +1,7 @@
 
-
-
-
-
 const express = require("express");
 const {addLike,getWishList,deleteWishList} = require("../Controller/wishlistController");
-const authMiddleware = require("../middleware/auth");
+const authMiddleware = require("../middleware/adminAuth");
 
 const wishlistRouter = express.Router();
 
