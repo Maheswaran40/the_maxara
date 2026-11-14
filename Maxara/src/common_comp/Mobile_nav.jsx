@@ -1,225 +1,117 @@
 import axios from "axios";
 import { Heart, Home, LogOut, ShoppingCart } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+// Order here = order on screen (grid column 0..3)
+const NAV_ITEMS = [
+  { key: "home", label: "Home", icon: Home, path: "/" },
+  { key: "logout", label: "Logout", icon: LogOut, path: null },
+  { key: "like", label: "Wishlist", icon: Heart, path: "/like" },
+  { key: "cart", label: "Cart", icon: ShoppingCart, path: "/cart" },
+];
+
 function Mobile_nav() {
-  let navigate = useNavigate();
-  let location = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  // Index of the tab that matches the current route (Logout has no route)
+  const routeIndex = NAV_ITEMS.findIndex(
+    (item) => item.path !== null && item.path === location.pathname,
+  );
+
+  // Keep the last valid index so the pill never disappears on unknown routes
+  const [pillIndex, setPillIndex] = useState(routeIndex === -1 ? 0 : routeIndex);
+
+  useEffect(() => {
+    if (routeIndex !== -1) setPillIndex(routeIndex);
+  }, [routeIndex]);
+
   const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
     try {
-      alert("logout");
       await axios.post(
         `${import.meta.env.VITE_LOGOUT_API}`,
         {},
-        {
-          withCredentials: true,
-        },
+        { withCredentials: true },
       );
-
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
+  const handleClick = (item) => {
+    if (item.key === "logout") {
+      handleLogout();
+    } else {
+      navigate(item.path);
     }
   };
 
   return (
-    <>
-      <div
-        id="mobile-nav"
-        className="
-    fixed bottom-2.5 left-1/2 -translate-x-1/2
-    md:hidden
-    w-[90%] h-[58px]
-    rounded-full
-    border border-blue-200/70
-    bg-white backdrop-blur-xl
-    shadow-[0_8px_30px_rgba(0,0,0,0.12)]
-    flex justify-center items-center
-    z-50
-    transition-all duration-500 ease-out
-    hover:shadow-[0_12px_40px_rgba(37,99,235,0.20)] 
-  "
-      >
-        <div className="flex items-center justify-around gap-10 w-full  px-4">
-          {/* home */}
-
-          <div
-            className={`
-        group
-        flex flex-col items-center justify-center
-        cursor-pointer
-        transition-all duration-300 ease-out
-        hover:-translate-y-1 ${
-            location.pathname === "/"
-              ? "bg-primary text-white rounded-4xl h-13 w-13"
-              : "text-(--primary-dark) group-hover:text-red-500"
-          }
-            `}
-            onClick={() => navigate("/")}
-          >
-            <div
-              className="
-          p-1.5 rounded-full
-          transition-all duration-300
-          group-hover:bg-red-50
-          group-hover:scale-110
-          group-hover:shadow-[0_4px_15px_rgba(239,68,68,0.25)]
-         
-        "
-            >
-              <Home
-                className=" text-(--primary-dark) group-hover:text-red-500 transition-colors duration-300"
-                size={18}
-              />
-            </div>
-
-            <span
-              className={` text-[11px] font-medium
-           text-(--primary-dark)
-          group-hover:text-red-500
-          transition-all duration-300
-          group-hover:[text-shadow:0_2px_5px_rgba(239,68,68,0.25)] `}
-            >
-              Home
-            </span>
-          </div>
-
-          {/* LOGOUT */}
-          <div
-            className={`
-        group
-        flex flex-col items-center justify-center
-        cursor-pointer
-        transition-all duration-300 ease-out
-        hover:-translate-y-1 
-            `}
-            onClick={handleLogout}
-          >
-            <div
-              className="
-          p-1.5 rounded-full
-          transition-all duration-300
-          group-hover:bg-red-50
-          group-hover:scale-110
-          group-hover:shadow-[0_4px_15px_rgba(239,68,68,0.25)]
-        "
-            >
-              <LogOut
-                className=" text-(--primary-dark) group-hover:text-red-500 transition-colors duration-300"
-                size={18}
-              />
-            </div>
-
-            <span
-              className="
-          text-[11px] font-medium
-           text-(--primary-dark)
-          group-hover:text-red-500
-          transition-all duration-300
-          group-hover:[text-shadow:0_2px_5px_rgba(239,68,68,0.25)]
-        "
-            >
-              Logout
-            </span>
-          </div>
-
-          {/* WISHLIST */}
-          <div
-            className={`
-        group
-        flex flex-col items-center justify-center
-        cursor-pointer
-        transition-all duration-300 ease-out
-        hover:-translate-y-1  ${
-            location.pathname === "/like"
-              ? "bg-primary text-white rounded-2xl h-13 w-13 "
-              : "text-(--primary-dark) group-hover:text-red-500"
-          }
-      `}
-            onClick={() => navigate("/like")}
-          >
-            <div
-              className="
-          p-1.5 rounded-full
-          transition-all duration-300
-          group-hover:bg-pink-50
-          group-hover:scale-110
-          group-hover:shadow-[0_4px_15px_rgba(236,72,153,0.25)]
-        "
-            >
-              <Heart
-                size={18}
-                className="
-             text-(--primary-dark)
-            group-hover:text-pink-500
-            group-hover:fill-pink-500
-            transition-all duration-300
+    <div
+      id="mobile-nav"
+      className="
+        fixed bottom-2.5 left-1/2 -translate-x-1/2
+        md:hidden w-[90%] h-[58px]
+        rounded-full border border-blue-400
+        bg-white/95 backdrop-blur-xl
+        shadow-[0_8px_30px_rgba(0,0,0,0.12)]
+        flex items-center justify-center
+        z-50
+      "
+    >
+      <div className="relative grid grid-cols-4 items-center w-full h-full">
+        {/* SLIDING PILL: wrapper is exactly one column wide,
+            so translateX(100% * index) lands on the right tab at any screen size */}
+        <div
+          className="
+            absolute top-0 left-0
+            w-1/4 h-full
+            flex items-center justify-center
+            pointer-events-none
+            transition-transform duration-500
+            ease-[cubic-bezier(0.34,1.56,0.34,1)]
           "
-              />
-            </div>
-
-            <span
-              className="
-          text-[11px] font-medium
-           text-(--primary-dark)
-          group-hover:text-pink-500
-          transition-all duration-300
-          group-hover:[text-shadow:0_2px_5px_rgba(236,72,153,0.25)]
-        "
-            >
-              Wishlist
-            </span>
-          </div>
-
-          {/* CART */}
-          <div
-            className={`
-        group
-        flex flex-col items-center justify-center
-        cursor-pointer
-        transition-all duration-300 ease-out
-        hover:-translate-y-1  ${
-            location.pathname === "/cart"
-              ? "bg-primary text-white rounded-4xl h-13 w-13"
-              : "text-(--primary-dark) group-hover:text-red-500"
-          }
-            `}
-            onClick={() => navigate("/cart")}
-          >
-            <div
-              className="
-          p-1.5 rounded-full
-          transition-all duration-300
-          group-hover:bg-blue-50
-          group-hover:scale-110
-          group-hover:shadow-[0_4px_15px_rgba(59,130,246,0.25)]
-        "
-            >
-              <ShoppingCart
-                size={18}
-                className="
-             text-(--primary-dark)
-            group-hover:text-blue-500
-            transition-all duration-300
-          "
-              />
-            </div>
-
-            <span
-              className="
-          text-[11px] font-medium
-           text-(--primary-dark)
-          group-active:text-primary-500
-          transition-all duration-300
-          group-hover:[text-shadow:0_2px_5px_rgba(59,130,246,0.25)]
-        "
-            >
-              Cart
-            </span>
-          </div>
+          style={{ transform: `translateX(${pillIndex * 100}%)` }}
+        >
+          <div className="w-[52px] h-[52px] rounded-full bg-blue-700 shadow-[0_4px_15px_rgba(37,99,235,0.25)]" />
         </div>
+
+        {NAV_ITEMS.map((item, index) => {
+          const Icon = item.icon;
+          const isActive = routeIndex === index;
+
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => handleClick(item)}
+              disabled={item.key === "logout" && loggingOut}
+              aria-label={item.label}
+              aria-current={isActive ? "page" : undefined}
+              className={`
+                relative z-10
+                flex flex-col items-center justify-center
+                cursor-pointer bg-transparent border-0 p-0
+                w-full h-[52px] rounded-full
+                transition-all duration-300
+                ${isActive ? "text-white scale-105" : "text-(--primary-dark)"}
+                ${item.key === "logout" && loggingOut ? "opacity-50" : ""}
+              `}
+            >
+              <Icon size={18} />
+              <span className="text-[11px] font-medium">{item.label}</span>
+            </button>
+          );
+        })}
       </div>
-    </>
+    </div>
   );
 }
 

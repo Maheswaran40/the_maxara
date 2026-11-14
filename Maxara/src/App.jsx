@@ -3,7 +3,6 @@ import Navbar from "./common_comp/Navbar";
 import Home from "./pages/Home";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
-import Products from "./pages/Products";
 import CategoryProduct from "./pages/CategoryProduct";
 import ProductPage from "./pages/ProductPage";
 import Footer from "./common_comp/Footer";
@@ -20,47 +19,81 @@ import ResetPassword from "./pages/ResetPassword";
 function App() {
   return (
     <BrowserRouter>
-    <ScrollToTop/>
+      <ScrollToTop />
       <AppContent />
     </BrowserRouter>
   );
 }
 
+
 function AppContent() {
   const location = useLocation();
-  const hideLayout =
-    location.pathname === "/login" ||
-    location.pathname === "/signup" ||
-    location.pathname === "/otp" || location.pathname === "/reset-password" || location.pathname === "/forgot-password";
-   const [sheetOpen, setSheetOpen] = useState(false);
+
+  const authPages = [
+    "/login",
+    "/signup",
+    "/otp",
+    "/reset-password",
+    "/forgot-password"
+  ];
+
+  const isAuthPage = authPages.includes(location.pathname);
+
+  const [sheetOpen, setSheetOpen] = useState(false);
+
   return (
     <>
-      {!hideLayout && <Navbar sheetOpen={sheetOpen}
-        setSheetOpen={setSheetOpen} />}
+      {!isAuthPage && !isErrorPage() && (
+        <Navbar
+          sheetOpen={sheetOpen}
+          setSheetOpen={setSheetOpen}
+        />
+      )}
+
       <Routes>
-        <Route path="/" element={<Home  openSheet={() => setSheetOpen(true)}/>} />{" "}
-        {/* authentication */}
+        <Route
+          path="/"
+          element={<Home openSheet={() => setSheetOpen(true)} />}
+        />
+
         <Route path="/signup" element={<Signup />} />
         <Route path="/otp" element={<OTP />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/dummy" element={<dummy />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        {/* Home renders Products component */}
+
         <Route path="/product/:productId" element={<ProductPage />} />
         <Route path="/category/:folder" element={<CategoryProduct />} />
-        {/* Category page */}
         <Route path="/search" element={<CategoryProduct />} />
-        <Route path="/:folder" element={<Products />} />
-        {/* Dynamic folder route */}
         <Route path="/cart" element={<Cart />} />
         <Route path="/like" element={<Wishlist />} />
-        <Route path="*" element={<Error />} />
 
+        {/* Always keep Error route */}
+        <Route path="*" element={<Error />} />
       </Routes>
-      {!hideLayout && <Mobile_nav />}
-      {!hideLayout && <Footer />}
+
+      {!isAuthPage && !isErrorPage() &&(
+        <>
+          <Mobile_nav />
+          <Footer />
+        </>
+      )}
     </>
   );
 }
 
+
 export default App;
+
+
+function isErrorPage() {
+  return window.location.pathname !== "/" &&
+    ![
+      "/login", "/signup", "/otp",
+      "/reset-password", "/forgot-password",
+      "/search", "/cart", "/like"
+    ].includes(window.location.pathname) &&
+    !window.location.pathname.startsWith("/product/") &&
+    !window.location.pathname.startsWith("/category/");
+}
